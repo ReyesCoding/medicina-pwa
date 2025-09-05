@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pensum Medicina</title>
+
+  <link rel="manifest" href="pwa/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <link rel="icon" href="assets/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+
+  <link rel="preconnect" href="https://unpkg.com">
+  <script src="https://unpkg.com/cytoscape@3.29.2/dist/cytoscape.min.js" defer></script>
+
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="config.js"></script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <h1>🎓 Pensum Medicina <span class="badge">vig. 2013</span></h1>
+    <div class="kpis" id="kpis">
+      <div class="kpi"><div class="v" id="kpiCredits">0 / 0</div><div class="t">Créditos</div></div>
+      <div class="kpi"><div class="v" id="kpiProgress">0%</div><div class="t">Avance</div></div>
+      <div class="kpi"><div class="v" id="kpiGPA">—</div><div class="t">GPA</div></div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <aside class="panel">
+      <div class="section">Vistas</div>
+      <div class="buttons">
+        <button id="btnViewGraph">Malla (grafo)</button>
+        <button id="btnViewList">Lista</button>
+        <button id="btnViewPlan">Plan próximo</button>
+      </div>
+
+      <div class="section">Opciones</div>
+      <div class="stack">
+        <label>Tope créditos período
+          <input id="inpMaxCredits" type="number" min="8" max="30" value="18">
+        </label>
+        <label>Escala de notas
+          <select id="selScale">
+            <option value="numeric">Numérica (0–100)</option>
+            <option value="letters">Letras (A–F)</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="section">Progreso</div>
+      <div class="buttons">
+        <button id="btnExportProgress">Exportar progreso</button>
+        <button id="btnImportProgress">Importar progreso</button>
+        <input id="fileProgress" type="file" accept="application/json" hidden>
+      </div>
+
+      <div class="section small">Modo admin oculto disponible (por clave) — para actualizar dataset si cambia el pensum.</div>
+    </aside>
+
+    <section class="content">
+      <div id="graph" class="card" hidden></div>
+      <div id="list" class="card" hidden>
+        <div class="toolbar">
+          <input id="inpSearch" placeholder="Buscar por código o nombre…">
+          <select id="selFilter">
+            <option value="all">Todas</option>
+            <option value="available">Disponibles</option>
+            <option value="blocked">Bloqueadas</option>
+            <option value="passed">Aprobadas</option>
+          </select>
+        </div>
+        <div id="listBody"></div>
+      </div>
+      <div id="plan" class="card" hidden>
+        <div class="toolbar">
+          <button id="btnSuggest">Sugerir plan</button>
+          <div id="planInfo"></div>
+        </div>
+        <div id="planBody"></div>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <div class="section">Detalle</div>
+      <div id="detail">Selecciona una materia…</div>
+    </aside>
+  </main>
+
+  <footer class="foot">Hecho para estudiantes de Medicina • PWA offline • Sin backend</footer>
+
+  <script type="module" src="graph.js"></script>
+  <script type="module" src="planner.js"></script>
+  <script type="module" src="gpa.js"></script>
+</body>
+</html>

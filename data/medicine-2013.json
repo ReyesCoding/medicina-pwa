@@ -1,0 +1,13 @@
+{
+  "program": "Medicina (2013) - DEMO",
+  "courses": [
+    { "id":"BIO-101","code":"BIO-101","name":"Biología General","credits":4,"ht":3,"hp":2,"block":"PREMED","prereqs":[],"coreqs":[],"is_elective":false,"elective_group":null },
+    { "id":"QUI-101","code":"QUI-101","name":"Química General","credits":4,"ht":3,"hp":2,"block":"PREMED","prereqs":[],"coreqs":[],"is_elective":false,"elective_group":null },
+    { "id":"ANA-201","code":"ANA-201","name":"Anatomía I","credits":4,"ht":3,"hp":2,"block":"BASICAS","prereqs":["BIO-101","QUI-101"],"coreqs":[],"is_elective":false,"elective_group":null },
+    { "id":"ANA-202","code":"ANA-202","name":"Anatomía II","credits":4,"ht":3,"hp":2,"block":"BASICAS","prereqs":["ANA-201"],"coreqs":[],"is_elective":false,"elective_group":null },
+    { "id":"FIS-301","code":"FIS-301","name":"Fisiología I","credits":4,"ht":3,"hp":2,"block":"BASICAS","prereqs":["ANA-201"],"coreqs":["LAB-FIS-301"],"is_elective":false,"elective_group":null },
+    { "id":"LAB-FIS-301","code":"LAB-FIS-301","name":"Lab. Fisiología I","credits":1,"ht":0,"hp":2,"block":"BASICAS","prereqs":[],"coreqs":["FIS-301"],"is_elective":false,"elective_group":null },
+    { "id":"CLI-401","code":"CLI-401","name":"Clínica Introductoria","credits":4,"ht":3,"hp":2,"block":"CLINICAS","prereqs":["ANA-202","FIS-301"],"coreqs":[],"is_elective":false,"elective_group":null },
+    { "id":"ELE-PREM-1","code":"ELE-PREM-1","name":"Electiva Premédica","credits":3,"ht":3,"hp":0,"block":"PREMED","prereqs":[],"coreqs":[],"is_elective":true,"elective_group":"GEN" }
+  ]
+}
