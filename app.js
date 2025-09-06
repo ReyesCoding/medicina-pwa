@@ -40,7 +40,9 @@ function save() {
     grades: state.grades,
     plan:   [...state.plan],
     maxCredits: state.maxCredits,
-    scaleMode: state.scaleMode
+    scaleMode: state.scaleMode,
+    selectedSections: state.selectedSections
+
   }));
 }
 function load() {
@@ -53,6 +55,7 @@ function load() {
     state.plan   = new Set(obj.plan || []);
     state.maxCredits = obj.maxCredits ?? CONFIG.DEFAULT_MAX_CREDITS;
     state.scaleMode  = obj.scaleMode  ?? CONFIG.GRADE_SCALE.mode;
+    state.selectedSections = obj.selectedSections || {};
   } catch {}
 }
 
@@ -249,26 +252,58 @@ function renderPlan() {
   const body = $("#planBody");
   if (!body) return;
   const ids = [...state.plan];
+
   const rows = ids.map(id => {
     const c = byId(id);
+    const secs = c.sections || [];
+    const sel = state.selectedSections[id]?.crn || "";
+    const opts = secs.length
+      ? `<select data-id="${id}" class="secSel">
+           <option value="">Elegir sección…</option>
+           ${secs.map(s=>`<option value="${s.crn}" ${s.crn===sel?"selected":""}>${s.crn || "(sin clave)"} — ${s.label} · ${s.room||""}</option>`).join("")}
+         </select>`
+      : `<span class="muted">Sin horarios cargados</span>`;
+
     return `
       <div class="list-item" data-id="${id}">
         <div><b>${c.id}</b> — ${c.name}</div>
         <div>${c.credits} cr <button data-act="rm">Quitar</button></div>
+        <div style="flex-basis:100%; margin-top:6px">${opts}</div>
       </div>
     `;
   }).join("");
   body.innerHTML = rows || "<div class='muted'>No hay materias en el plan.</div>";
 
-  const used = ids.reduce((a,id)=>a+(byId(id)?.credits||0),0);
-  $("#planInfo").textContent = `Créditos planificados: ${used} / ${state.maxCredits}`;
-
+  // gestionar quitar
   body.querySelectorAll("[data-act='rm']").forEach(b => b.addEventListener("click", e=>{
     const id = e.target.closest(".list-item").getAttribute("data-id");
+    delete state.selectedSections[id];
     state.plan.delete(id);
     save(); renderPlan();
   }));
 
+  // seleccionar sección + chequear choques
+  body.querySelectorAll(".secSel").forEach(sel=>{
+    sel.addEventListener("change", e=>{
+      const cid = sel.getAttribute("data-id");
+      const c = byId(cid);
+      const secs = c.sections || [];
+      const pick = secs.find(s=>String(s.crn)===String(sel.value));
+      if (!pick) { delete state.selectedSections[cid]; save(); return; }
+
+      const tmp = {...state.selectedSections, [cid]: pick};
+      if (window.Schedule.hasConflict(tmp)) {
+        alert("Choque de horario con otra materia del plan. Elige otra sección.");
+        sel.value = state.selectedSections[cid]?.crn || ""; // revertir
+        return;
+      }
+      state.selectedSections[cid] = pick;
+      save();
+    });
+  });
+
+  const used = ids.reduce((a,id)=>a+(byId(id)?.credits||0),0);
+  $("#planInfo").textContent = `Créditos planificados: ${used} / ${state.maxCredits}`;
   const btn = $("#btnSuggest");
   if (btn && !btn._bound) {
     btn._bound = true;
@@ -288,7 +323,10 @@ async function boot() {
     console.error("Dataset no disponible:", e);
     state.dataset = { program:"VACÍO", courses:[] };
   }
-
+  // permite que un dataset con secciones persista localmente (admin)
+    loadDatasetOverride();
+    
+    injectAdminButton();
   // índices
   idx.clear(); deps.clear(); revDeps.clear();
   for (const c of state.dataset.courses) {
@@ -347,5 +385,63 @@ function showView(id){
     }
   }
 }
+
+const isAdmin = new URL(location.href).searchParams.get("admin") === CONFIG.ADMIN_KEY;
+
+function injectAdminButton(){
+  if (!isAdmin) return;
+  const panel = document.querySelectorAll(".panel")[0];
+  const box = document.createElement("div");
+  box.className = "section";
+  box.innerHTML = `
+    <div class="section">Admin (oculto)</div>
+    <div class="buttons">
+      <button id="btnPasteSchedules">Pegar horarios (admin)</button>
+      <button id="btnExportDataset">Exportar dataset</button>
+    </div>
+  `;
+  panel.appendChild(box);
+
+  document.getElementById("btnPasteSchedules").onclick = async ()=>{
+    const raw = prompt("Pega aquí el bloque de horarios (texto plano)");
+    if (!raw) return;
+    const map = window.Schedule.parsePastedSchedules(raw);
+    // Emparejar por nombre normalizado
+    let attached = 0;
+    state.dataset.courses.forEach(c=>{
+      const key = normalizeName(c.name);
+      if (map[key] && map[key].length){
+        c.sections = map[key]; // sobrescribe por simplicidad
+        attached++;
+      }
+    });
+    saveDataset(); // persiste en localStorage
+    alert(`Secciones adjuntadas a ${attached} materias.`);
+    renderPlan(); // para que aparezcan selectores
+  };
+
+  document.getElementById("btnExportDataset").onclick = ()=>{
+    const blob = new Blob([JSON.stringify(state.dataset, null, 2)], {type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "medicine-2013-with-sections.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+}
+
+function normalizeName(s){
+  return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/\s+/g," ").trim();
+}
+function saveDataset(){
+  localStorage.setItem("medicina-dataset", JSON.stringify(state.dataset));
+}
+function loadDatasetOverride(){
+  const raw = localStorage.getItem("medicina-dataset");
+  if (!raw) return false;
+  try { state.dataset = JSON.parse(raw); return true; } catch { return false; }
+}
+
+state.selectedSections = {}; // { courseId: sectionObj }
 
 boot();
