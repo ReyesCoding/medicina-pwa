@@ -1,158 +1,39 @@
-// schedule.js — parser de horarios + choques
-const DAYMAP = { "L":0,"LU":0, "MA":1, "MI":2, "X":2, "J":3, "V":4, "S":5, "D":6 };
+// schedule.js
+const DAYMAP = { L:0, LU:0, MA:1, MI:2, X:2, J:3, V:4, S:5, D:6 };
 
 function normalizeName(s){
   return String(s||"")
     .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
     .toUpperCase()
-    .replace(/^LAB\.?\s+/,"")           // quita prefijo "LAB." si viene
+    .replace(/^LAB\.?\s+/,"")
     .replace(/^LABORATORIO\s+/,"")
     .replace(/\s+/g," ")
     .trim();
 }
 
-function parseTime(str){ // "8:30", "1:45 pm"
+function parseTime(str){
   const m = String(str).trim().match(/^(\d{1,2}):?(\d{2})?\s*(am|pm)?$/i);
   if(!m) return null;
   let hh = parseInt(m[1],10);
   let mm = parseInt(m[2]||"0",10);
-  const ampm = (m[3]||"").toLowerCase();
-  if(ampm==="pm" && hh<12) hh+=12;
-  if(ampm==="am" && hh===12) hh=0;
+  const ap = (m[3]||"").toLowerCase();
+  if(ap==="pm" && hh<12) hh+=12;
+  if(ap==="am" && hh===12) hh=0;
   return {hh,mm};
 }
 
-function toMinutes(dayCode, t){ // minutos desde lunes 00:00
+function toMinutes(dayCode, t){
   const d = DAYMAP[dayCode] ?? null;
   if(d==null) return null;
   return d*24*60 + t.hh*60 + t.mm;
 }
 
-// Detecta patrones tipo:
-// "MIJ8:30,9:15 am", "J1:45 a 4:45 pm", "LV7:00,7:45 am", "J4:00,4:45,V2:30,3:15 pm"
-function expandSlots(horario){
-  const slots = [];
-  const txt = String(horario||"").toUpperCase();
-
-  // Partimos por ")," para separar segmentos tipo "J4:00,4:45" y "V2:30,3:15 pm"
-  const segments = txt.split(/\)\s*|(?<=\w)\s+(?=[A-Z]{1,2}\d)|\s{2,}/).filter(Boolean);
-  const re = /([LMIXJVS]{1,2})\s*([0-9:]+)\s*(?:,|a|-)\s*([0-9:]+)\s*(am|pm)?/i;
-
-  // Si no hubo cortes, intentamos al menos una coincidencia global
-  const base = segments.length ? segments : [txt];
-
-  base.forEach(seg=>{
-    let suffix = ""; // am/pm que se arrastra al final
-    const segPm = seg.match(/\b(am|pm)\b/i);
-    if (segPm) suffix = segPm[1].toLowerCase();
-
-    // dividir por comas separando paquetes "J4:00,4:45" y "V2:30,3:15"
-    const parts = seg.split(/\s*,\s*(?=[LMIXJVS]{1,2}\s*\d)/);
-    (parts.length?parts:[seg]).forEach(p=>{
-      const m = p.match(re);
-      if(!m) return;
-      const day = m[1];
-      const t1 = parseTime(m[2] + (suffix?(" "+suffix):""));
-      const t2 = parseTime(m[3] + (suffix?(" "+suffix):""));
-      if(!t1 || !t2) return;
-
-      // Si day tiene dos letras tipo "MI" o "LV", se expanden ambos días
-      const days = expandDayToken(day);
-      days.forEach(d=>{
-      const start = toMinutes(d, t1), end = toMinutes(d, t2);
-        if(start!=null && end!=null) slots.push({ day:d, start, end });
-      });
-
-      days.forEach(d=>{
-        const start = toMinutes(d, t1), end = toMinutes(d, t2);
-        if(start!=null && end!=null) slots.push({ day:d, start, end });
-      });
-    });
-  });
-  return slots;
-}
-
-// Parser principal: recibe texto pegado, devuelve mapping por materia
-function parsePastedSchedules(text){
-  // Esperamos columnas tipo: Estado | Clave | Nombre | Horario | Aula | Carreras
-  // Separadas por tabs o múltiples espacios.
-  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
-  const out = {}; // nameNormalized -> [sections]
-
-  const dayLead = /([LMIXJVS]{1,2})(\d{1,2}:\d{2})/i; // detecta inicio "MI7:00", "MA10:45", "J4:00", etc.
-
-  for (const line of lines){
-    // 1) CRN (primer token alfanumérico grande)
-    const mcrn = line.match(/^([A-Z0-9\-]+)\s+(.*)$/i);
-    if (!mcrn) continue;
-    const crn = mcrn[1];
-    let rest = mcrn[2].trim();
-
-    // 2) Corta en el primer punto donde aparezca un día+hora
-    const idx = rest.search(dayLead);
-    if (idx < 0) continue;
-
-    const namePart = rest.slice(0, idx).trim();
-    let schedPart = rest.slice(idx).trim();
-
-    // 3) Aula probable: si al final queda “(Presencial) A113” o similar, extrae el último token como aula
-    let room = "";
-    schedPart = schedPart.replace(/\(PRESENCIAL\)/ig, "").trim();
-    const tokens = schedPart.split(/\s+/);
-    if (tokens.length >= 2 && /^[A-Z0-9\-]+$/.test(tokens[tokens.length-1])) {
-      room = tokens.pop();
-      schedPart = tokens.join(" ");
-    }
-
-    // 4) Normaliza nombre
-    const name = namePart.replace(/\s{2,}/g," ").trim();
-    const key = normalizeName(name);
-
-    // 5) Expande a slots
-    const slots = expandSlots(schedPart);
-
-    if (!out[key]) out[key] = [];
-    out[key].push({
-      crn,
-      label: schedPart.trim(),
-      room,
-      career: "MED",
-      slots
-    });
-  }
-
-  return out;
-}
-
-// Choques: true si [a,b] solapa con [c,d]
-function overlap(a,b,c,d){ return Math.max(a,c) < Math.min(b,d); }
-
-function hasConflict(selectedMap){
-  // selectedMap: { courseId: {crn,label,slots[]} }
-  const entries = Object.values(selectedMap).filter(s=>s && s.slots && s.slots.length);
-  for (let i=0;i<entries.length;i++){
-    for (let j=i+1;j<entries.length;j++){
-      for (const s1 of entries[i].slots){
-        for (const s2 of entries[j].slots){
-          // mismo día lógico (convertimos letras alternativas)
-          const d1 = (s1.day.length===1)? s1.day : s1.day[0];
-          const d2 = (s2.day.length===1)? s2.day : s2.day[0];
-          if (d1===d2 && overlap(s1.start, s1.end, s2.start, s2.end)) return true;
-        }
-      }
-    }
-  }
-  return false;
-}
-
-// Convierte tokens como "MIJ", "MAV", "LV", "MAMI" → ["MI","J"] o ["MA","V"] etc.
+// MAJ / MAMI / JV / etc.
 function expandDayToken(tok){
   const s = String(tok).toUpperCase();
   const out = [];
-  // pares válidos de 2 letras
   const two = ["LU","MA","MI","JU","VI","SA","DO"]; // normales
-  const alt = ["MA","MI"]; // abreviaturas que sí vemos pegadas
-  // Permitimos letras sueltas: L,J,V,S,D y X=MI
+  const alt = ["MA","MI"]; // abreviaturas pegadas que vemos
   let i = 0;
   while (i < s.length) {
     const twoCandidate = s.slice(i, i+2);
@@ -166,6 +47,103 @@ function expandDayToken(tok){
     i += 1;
   }
   return out;
+}
+
+// Coma = inicios secuenciales (bloques de 45 min). "a" = rango explícito.
+function expandSlots(horario){
+  const slots = [];
+  const txt = String(horario||"").toUpperCase().trim();
+  const re = /([LMIXJVS]{1,4})\s*([0-9]{1,2}:[0-9]{2})(?:\s*(?:,|a|-)\s*([0-9]{1,2}:[0-9]{2}))?\s*(am|pm)?/gi;
+  let m;
+  while ((m = re.exec(txt)) !== null) {
+    const dayTok = m[1];
+    const between = txt.slice(m.index, re.lastIndex);
+    const hasRange = /(?:\ba\b|-)/i.test(between);
+    const t1 = parseTime(m[2] + (m[4] ? (" " + m[4]) : ""));
+    if (!t1) continue;
+    const days = expandDayToken(dayTok);
+
+    if (m[3]) {
+      const t2 = parseTime(m[3] + (m[4] ? (" " + m[4]) : ""));
+      if (!t2) continue;
+      if (hasRange) {
+        for (const d of days) {
+          const start = toMinutes(d, t1), end = toMinutes(d, t2);
+          if (start!=null && end!=null) slots.push({ day:d, start, end });
+        }
+      } else {
+        for (const d of days) {
+          const start1 = toMinutes(d, t1);
+          const end1 = start1!=null ? start1 + 45 : null;
+          const start2 = toMinutes(d, t2);
+          const end2 = start2!=null ? start2 + 45 : null;
+          if (start1!=null && end1!=null) slots.push({ day:d, start:start1, end:end1 });
+          if (start2!=null && end2!=null) slots.push({ day:d, start:start2, end:end2 });
+        }
+      }
+    } else {
+      for (const d of days) {
+        const start = toMinutes(d, t1);
+        const end = start!=null ? start + 45 : null;
+        if (start!=null && end!=null) slots.push({ day:d, start, end });
+      }
+    }
+  }
+  return slots;
+}
+
+// Acepta líneas con o sin CRN al inicio
+function parsePastedSchedules(text){
+  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  const out = {};
+  const dayLead = /([LMIXJVS]{1,4})\s*\d{1,2}:\d{2}/i;
+
+  for (const line of lines){
+    let rest = line, crn = "";
+    const mcrn = rest.match(/^([A-Z0-9\-]{6,})\s+(.*)$/i);
+    if (mcrn) { crn = mcrn[1]; rest = mcrn[2]; }
+
+    const idx = rest.search(dayLead);
+    if (idx < 0) continue;
+
+    let namePart = rest.slice(0, idx).trim();
+    let schedPart = rest.slice(idx).replace(/\(PRESENCIAL\)/ig,"").trim();
+
+    // Si el nombre terminó con un token de día (ej. "... ANATOMIA I MA")
+    namePart = namePart.replace(/\b([LMIXJVS]{1,4})$/i, "").trim();
+
+    // Aula: último token alfanumérico
+    let room = "";
+    const tokens = schedPart.split(/\s+/);
+    if (tokens.length >= 2 && /^[A-Z0-9\-]+$/.test(tokens[tokens.length-1])) {
+      room = tokens.pop();
+      schedPart = tokens.join(" ");
+    }
+
+    const key = normalizeName(namePart);
+    const slots = expandSlots(schedPart);
+    if (!out[key]) out[key] = [];
+    out[key].push({ crn, label: schedPart, room, career:"MED", slots });
+  }
+  return out;
+}
+
+function overlap(a,b,c,d){ return Math.max(a,c) < Math.min(b,d); }
+
+function hasConflict(selectedMap){
+  const entries = Object.values(selectedMap).filter(s=>s && s.slots && s.slots.length);
+  for (let i=0;i<entries.length;i++){
+    for (let j=i+1;j<entries.length;j++){
+      for (const s1 of entries[i].slots){
+        for (const s2 of entries[j].slots){
+          const d1 = Array.isArray(s1.day) ? s1.day[0] : s1.day;
+          const d2 = Array.isArray(s2.day) ? s2.day[0] : s2.day;
+          if (d1===d2 && overlap(s1.start, s1.end, s2.start, s2.end)) return true;
+        }
+      }
+    }
+  }
+  return false;
 }
 
 window.Schedule = { parsePastedSchedules, hasConflict };

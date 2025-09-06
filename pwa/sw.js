@@ -1,5 +1,5 @@
 /* sw v1 */
-const CACHE = "medicina-static-v6";
+const CACHE = "medicina-static-v7";
 const ASSETS = [
   "./", "../index.html", "../styles.css",
   "../app.js", "../graph.js", "../planner.js", "../gpa.js", "../config.js",

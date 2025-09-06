@@ -119,12 +119,12 @@ function setKPIs() {
 
 
 //——— LISTA
-function renderList() {
+function renderList(){
   const list = $("#listBody");
   const q = ($("#inpSearch")?.value || "").toLowerCase();
   const filter = $("#selFilter")?.value || "all";
 
-  const items = state.dataset.courses.filter(c=>{
+  const all = state.dataset.courses.filter(c=>{
     const match = c.id.toLowerCase().includes(q) || c.name.toLowerCase().includes(q);
     if (!match) return false;
     if (filter === "passed")    return isPassed(c.id);
@@ -133,7 +133,12 @@ function renderList() {
     return true;
   });
 
-  list.innerHTML = items.map(c=>{
+  // agrupa por cuatrimestre si existe c.term; si no, por block
+  const keyOf = c => (c.term ?? c.cuatrimestre ?? c.block ?? "OTROS");
+  const groups = {};
+  for (const c of all) (groups[keyOf(c)] ??= []).push(c);
+
+  const row = (c)=> {
     const status = isPassed(c.id) ? "Aprobada" : (isAvailable(c.id) ? "Disponible" : "Bloqueada");
     return `
       <div class="list-item" data-id="${c.id}">
@@ -148,32 +153,35 @@ function renderList() {
         </div>
       </div>
     `;
-  }).join("");
+  };
 
-  list.querySelectorAll(".list-item").forEach(row=>{
-    row.addEventListener("click", e=>{
-      const id = row.getAttribute("data-id");
-      if (e.target.closest("button")) return; // evita doble acción
+  list.innerHTML = Object.entries(groups).map(([g, arr]) => `
+    <h3 class="section">${g}</h3>
+    ${arr.map(row).join("")}
+  `).join("");
+
+  // bindings igual que antes…
+  list.querySelectorAll(".list-item").forEach(rowEl=>{
+    rowEl.addEventListener("click", e=>{
+      const id = rowEl.getAttribute("data-id");
+      if (e.target.closest("button")) return;
       renderDetail(id);
     });
   });
   list.querySelectorAll(".btn-pass").forEach(b=>b.addEventListener("click", e=>{
-  const id = e.target.closest(".list-item").getAttribute("data-id");
-  if (CONFIG.GPA?.REQUIRE_GRADE_ON_PASS && !state.grades[id]) {
-    // no hay nota: lleva al detalle y enfoca
-    renderDetail(id);
-    setTimeout(()=> document.getElementById("inpGrade")?.focus(), 0);
-    return;
-  }
-  setPassed(id, true);
-}));
-
+    const id = e.target.closest(".list-item").getAttribute("data-id");
+    if (CONFIG.GPA?.REQUIRE_GRADE_ON_PASS && !state.grades[id]) {
+      renderDetail(id);
+      setTimeout(()=> document.getElementById("inpGrade")?.focus(), 0);
+      return;
+    }
+    setPassed(id, true);
+  }));
   list.querySelectorAll(".btn-unpass").forEach(b=>b.addEventListener("click", e=>{
     const id = e.target.closest(".list-item").getAttribute("data-id");
     setPassed(id, false);
   }));
 
-  // inputs de búsqueda/filtro
   $("#inpSearch").oninput = renderList;
   $("#selFilter").onchange = renderList;
 }
@@ -347,7 +355,6 @@ async function boot() {
       revDeps.get(p).push(c.id);
     }
   }
-
   // enlaza UI base
   $("#inpMaxCredits").value = state.maxCredits;
   $on($("#inpMaxCredits"), "change", e=>{
@@ -360,13 +367,38 @@ async function boot() {
     save(); setKPIs();
   });
   // Fijamos escala numérica y ocultamos el selector
-  state.scaleMode = "numeric";
-  const scaleLabel = document.querySelector("label:has(#selScale)");
-  if (scaleLabel) scaleLabel.style.display = "none";
-  $("#selScale").value = "numeric";   // asegúralo visualmente
-  // (Opcional) desactívalo:
-  $("#selScale").disabled = true;
+// Fijamos escala numérica y ocultamos el selector
+state.scaleMode = "numeric";
+const sel = document.getElementById("selScale");
+if (sel) {
+  sel.value = "numeric";
+  sel.disabled = true;
+  const lbl = sel.closest("label");
+  if (lbl) lbl.style.display = "none";
+}
+// Oculta importar
+const btnImp = $("#btnImportProgress");
+const fileImp = $("#fileProgress");
+if (btnImp) btnImp.style.display = "none";
+if (fileImp) fileImp.remove();
 
+// Exportar aprobadas (CSV)
+const btnExp = $("#btnExportProgress");
+if (btnExp) {
+  btnExp.textContent = "Exportar aprobadas (.csv)";
+  btnExp.onclick = () => {
+    const rows = state.dataset.courses
+      .filter(c => state.passed.has(c.id))
+      .map(c => `${c.id},"${c.name.replace(/"/g,'""')}",${c.credits}`);
+    const csv = "id,nombre,creditos\n" + rows.join("\n");
+    const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "aprobadas.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+}
 
   $on($("#btnViewGraph"), "click", ()=>showView("graph"));
   $on($("#btnViewList"),  "click", ()=>showView("list"));
