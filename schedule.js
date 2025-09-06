@@ -2,7 +2,13 @@
 const DAYMAP = { "L":0,"LU":0, "MA":1, "MI":2, "X":2, "J":3, "V":4, "S":5, "D":6 };
 
 function normalizeName(s){
-  return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/\s+/g," ").trim();
+  return String(s||"")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .toUpperCase()
+    .replace(/^LAB\.?\s+/,"")           // quita prefijo "LAB." si viene
+    .replace(/^LABORATORIO\s+/,"")
+    .replace(/\s+/g," ")
+    .trim();
 }
 
 function parseTime(str){ // "8:30", "1:45 pm"

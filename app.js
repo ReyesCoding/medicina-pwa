@@ -77,24 +77,20 @@ function isAvailable(id) {
 }
 
 function setPassed(id, v) {
-   if (v && CONFIG.GPA?.REQUIRE_GRADE_ON_PASS) {
+  if (v && CONFIG.GPA?.REQUIRE_GRADE_ON_PASS) {
     const graw = state.grades[id];
-    if (state.scaleMode === "numeric") {
-      const n = Number(graw);
-      if (graw == null || graw === "" || Number.isNaN(n) || n < 0 || n > 100) {
-        alert("Ingresa una calificación válida (0–100) antes de aprobar.");
-        renderDetail(id);
-        setTimeout(()=> document.getElementById("inpGrade")?.focus(), 0);
-        return;
-      }
-    } else {
-      const ok = !!CONFIG.GRADE_SCALE.letters[String(graw).toUpperCase().trim()];
-      if (!ok) {
-        alert("Ingresa una calificación válida (A, A-, B+, ...).");
-        renderDetail(id);
-        setTimeout(()=> document.getElementById("inpGrade")?.focus(), 0);
-        return;
-      }
+    const n = Number(graw);
+    if (graw == null || graw === "" || Number.isNaN(n) || n < 0 || n > 100) {
+      alert("Ingresa una calificación válida (0–100) antes de aprobar.");
+      renderDetail(id);
+      setTimeout(()=> document.getElementById("inpGrade")?.focus(), 0);
+      return;
+    }
+    if (n < CONFIG.GPA.PASSING_MIN_NUMERIC) {
+      alert(`No se aprueba con nota menor a ${CONFIG.GPA.PASSING_MIN_NUMERIC}.`);
+      renderDetail(id);
+      setTimeout(()=> document.getElementById("inpGrade")?.focus(), 0);
+      return;
     }
   }
 
@@ -104,11 +100,7 @@ function setPassed(id, v) {
   setKPIs();
   renderList();
   if (window.Graph) window.Graph.refreshGraphColors();
-  // si estaba en plan y la aprobaste, la sacamos del plan
-  if (v && state.plan.has(id)) {
-    state.plan.delete(id);
-    renderPlan();
-  }
+  if (v && state.plan.has(id)) { state.plan.delete(id); renderPlan(); }
 }
 
 function setKPIs() {
@@ -232,26 +224,18 @@ function renderDetail(id) {
     const needGrade = CONFIG.GPA?.REQUIRE_GRADE_ON_PASS;
     const v = ($("#inpGrade")?.value || "").trim();
 
-    if (needGrade) {
-        if (state.scaleMode === "numeric") {
-        const n = Number(v);
-        if (!v || Number.isNaN(n) || n < 0 || n > 100) {
-            alert("Ingresa una calificación válida (0–100) antes de aprobar.");
-            $("#inpGrade")?.focus();
-            return;
-        }
-        } else {
-        // letras A–F (por si algún día cambias la escala)
-        const ok = !!CONFIG.GRADE_SCALE.letters[String(v).toUpperCase().trim()];
-        if (!v || !ok) {
-            alert("Ingresa una calificación en letras válida (A, A-, B+, ...).");
-            $("#inpGrade")?.focus();
-            return;
-        }
-        }
-        // si pasó la validación, guardamos la calificación
-        state.grades[id] = v;
-    }
+   if (needGrade) {
+  const n = Number(v);
+  if (!v || Number.isNaN(n) || n < 0 || n > 100) {
+    alert("Ingresa una calificación válida (0–100) antes de aprobar.");
+    $("#inpGrade")?.focus(); return;
+  }
+  if (n < CONFIG.GPA.PASSING_MIN_NUMERIC) {
+    alert(`No se aprueba con nota menor a ${CONFIG.GPA.PASSING_MIN_NUMERIC}.`);
+    $("#inpGrade")?.focus(); return;
+  }
+  state.grades[id] = n; // guarda como número
+}
 
     setPassed(id, true);
     });
@@ -375,6 +359,14 @@ async function boot() {
     state.scaleMode = e.target.value;
     save(); setKPIs();
   });
+  // Fijamos escala numérica y ocultamos el selector
+  state.scaleMode = "numeric";
+  const scaleLabel = document.querySelector("label:has(#selScale)");
+  if (scaleLabel) scaleLabel.style.display = "none";
+  $("#selScale").value = "numeric";   // asegúralo visualmente
+  // (Opcional) desactívalo:
+  $("#selScale").disabled = true;
+
 
   $on($("#btnViewGraph"), "click", ()=>showView("graph"));
   $on($("#btnViewList"),  "click", ()=>showView("list"));
@@ -431,21 +423,35 @@ function injectAdminButton(){
   document.getElementById("btnPasteSchedules").onclick = async ()=>{
     const raw = prompt("Pega aquí el bloque de horarios (texto plano)");
     if (!raw) return;
-    const map = window.Schedule.parsePastedSchedules(raw);
+  const map = window.Schedule.parsePastedSchedules(raw);
 let attached = 0;
 const unmatched = new Set(Object.keys(map));
 
-state.dataset.courses.forEach(c=>{
-  const key = normalizeName(c.name);
-  const arr = map[key];
-  if (arr && arr.length){
+const courses = state.dataset.courses.map(c => ({ c, key: normalizeName(c.name) }));
+
+for (const { c, key } of courses) {
+  let arr = map[key];
+
+  // Fallback 1: busca clave que contenga nuestro key
+  if (!arr) {
+    const hit = [...unmatched].find(k => k.includes(key));
+    if (hit) arr = map[hit];
+  }
+  // Fallback 2: busca clave incluida dentro de nuestro key
+  if (!arr) {
+    const hit = [...unmatched].find(k => key.includes(k));
+    if (hit) arr = map[hit];
+  }
+
+  if (arr && arr.length) {
     c.sections = arr;
     attached++;
     unmatched.delete(key);
   }
-});
+}
+
 saveDataset();
-alert(`Secciones adjuntadas a ${attached} materias.${unmatched.size ? "\nNo hubo coincidencia para:\n- " + [...unmatched].join("\n- ") : ""}`);
+alert(`Secciones adjuntadas a ${attached} materias.` + (unmatched.size ? `\nNo hubo coincidencia para:\n- ${[...unmatched].join("\n- ")}` : ""));
 renderPlan(); // para que aparezcan selectores
   };
 
