@@ -77,6 +77,27 @@ function isAvailable(id) {
 }
 
 function setPassed(id, v) {
+   if (v && CONFIG.GPA?.REQUIRE_GRADE_ON_PASS) {
+    const graw = state.grades[id];
+    if (state.scaleMode === "numeric") {
+      const n = Number(graw);
+      if (graw == null || graw === "" || Number.isNaN(n) || n < 0 || n > 100) {
+        alert("Ingresa una calificación válida (0–100) antes de aprobar.");
+        renderDetail(id);
+        setTimeout(()=> document.getElementById("inpGrade")?.focus(), 0);
+        return;
+      }
+    } else {
+      const ok = !!CONFIG.GRADE_SCALE.letters[String(graw).toUpperCase().trim()];
+      if (!ok) {
+        alert("Ingresa una calificación válida (A, A-, B+, ...).");
+        renderDetail(id);
+        setTimeout(()=> document.getElementById("inpGrade")?.focus(), 0);
+        return;
+      }
+    }
+  }
+
   if (v) state.passed.add(id);
   else   state.passed.delete(id);
   save();
@@ -145,9 +166,16 @@ function renderList() {
     });
   });
   list.querySelectorAll(".btn-pass").forEach(b=>b.addEventListener("click", e=>{
-    const id = e.target.closest(".list-item").getAttribute("data-id");
-    setPassed(id, true);
-  }));
+  const id = e.target.closest(".list-item").getAttribute("data-id");
+  if (CONFIG.GPA?.REQUIRE_GRADE_ON_PASS && !state.grades[id]) {
+    // no hay nota: lleva al detalle y enfoca
+    renderDetail(id);
+    setTimeout(()=> document.getElementById("inpGrade")?.focus(), 0);
+    return;
+  }
+  setPassed(id, true);
+}));
+
   list.querySelectorAll(".btn-unpass").forEach(b=>b.addEventListener("click", e=>{
     const id = e.target.closest(".list-item").getAttribute("data-id");
     setPassed(id, false);
@@ -314,7 +342,6 @@ function renderPlan() {
 //——— Boot
 async function boot() {
   load();
-
   // carga dataset
   try {
     const res = await fetch("./data/medicine-2013.json");
@@ -325,7 +352,6 @@ async function boot() {
   }
   // permite que un dataset con secciones persista localmente (admin)
     loadDatasetOverride();
-    
     injectAdminButton();
   // índices
   idx.clear(); deps.clear(); revDeps.clear();
@@ -406,18 +432,21 @@ function injectAdminButton(){
     const raw = prompt("Pega aquí el bloque de horarios (texto plano)");
     if (!raw) return;
     const map = window.Schedule.parsePastedSchedules(raw);
-    // Emparejar por nombre normalizado
-    let attached = 0;
-    state.dataset.courses.forEach(c=>{
-      const key = normalizeName(c.name);
-      if (map[key] && map[key].length){
-        c.sections = map[key]; // sobrescribe por simplicidad
-        attached++;
-      }
-    });
-    saveDataset(); // persiste en localStorage
-    alert(`Secciones adjuntadas a ${attached} materias.`);
-    renderPlan(); // para que aparezcan selectores
+let attached = 0;
+const unmatched = new Set(Object.keys(map));
+
+state.dataset.courses.forEach(c=>{
+  const key = normalizeName(c.name);
+  const arr = map[key];
+  if (arr && arr.length){
+    c.sections = arr;
+    attached++;
+    unmatched.delete(key);
+  }
+});
+saveDataset();
+alert(`Secciones adjuntadas a ${attached} materias.${unmatched.size ? "\nNo hubo coincidencia para:\n- " + [...unmatched].join("\n- ") : ""}`);
+renderPlan(); // para que aparezcan selectores
   };
 
   document.getElementById("btnExportDataset").onclick = ()=>{

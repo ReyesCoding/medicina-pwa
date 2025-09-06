@@ -71,22 +71,50 @@ function parsePastedSchedules(text){
   // Esperamos columnas tipo: Estado | Clave | Nombre | Horario | Aula | Carreras
   // Separadas por tabs o múltiples espacios.
   const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
-  const out = {}; // nameNormalized -> [{crn,label,room,career,slots}]
-  for (const line of lines){
-    const cols = line.split(/\t+| {2,}/).map(c=>c.trim());
-    if (cols.length < 4) continue;
-    const crn   = cols[0];           // a veces vacío
-    const name  = cols[1] || cols[2];// según orden
-    const horario = cols[2] || cols[3];
-    const aula  = cols[3] || cols[4] || "";
-    const carr  = cols[4] || cols[5] || "";
+  const out = {}; // nameNormalized -> [sections]
 
-    const label = horario.replace(/\s*\(PRESENCIAL\)\s*/i,"").trim();
-    const slots = expandSlots(label);
+  const dayLead = /([LMIXJVS]{1,2})(\d{1,2}:\d{2})/i; // detecta inicio "MI7:00", "MA10:45", "J4:00", etc.
+
+  for (const line of lines){
+    // 1) CRN (primer token alfanumérico grande)
+    const mcrn = line.match(/^([A-Z0-9\-]+)\s+(.*)$/i);
+    if (!mcrn) continue;
+    const crn = mcrn[1];
+    let rest = mcrn[2].trim();
+
+    // 2) Corta en el primer punto donde aparezca un día+hora
+    const idx = rest.search(dayLead);
+    if (idx < 0) continue;
+
+    const namePart = rest.slice(0, idx).trim();
+    let schedPart = rest.slice(idx).trim();
+
+    // 3) Aula probable: si al final queda “(Presencial) A113” o similar, extrae el último token como aula
+    let room = "";
+    schedPart = schedPart.replace(/\(PRESENCIAL\)/ig, "").trim();
+    const tokens = schedPart.split(/\s+/);
+    if (tokens.length >= 2 && /^[A-Z0-9\-]+$/.test(tokens[tokens.length-1])) {
+      room = tokens.pop();
+      schedPart = tokens.join(" ");
+    }
+
+    // 4) Normaliza nombre
+    const name = namePart.replace(/\s{2,}/g," ").trim();
     const key = normalizeName(name);
+
+    // 5) Expande a slots
+    const slots = expandSlots(schedPart);
+
     if (!out[key]) out[key] = [];
-    out[key].push({ crn: crn || "", label, room: aula, career: carr || "MED", slots });
+    out[key].push({
+      crn,
+      label: schedPart.trim(),
+      room,
+      career: "MED",
+      slots
+    });
   }
+
   return out;
 }
 
@@ -115,21 +143,20 @@ function hasConflict(selectedMap){
 function expandDayToken(tok){
   const s = String(tok).toUpperCase();
   const out = [];
-  const two = ["MA","MI"]; // pares de 2 letras
+  // pares válidos de 2 letras
+  const two = ["LU","MA","MI","JU","VI","SA","DO"]; // normales
+  const alt = ["MA","MI"]; // abreviaturas que sí vemos pegadas
+  // Permitimos letras sueltas: L,J,V,S,D y X=MI
   let i = 0;
   while (i < s.length) {
     const twoCandidate = s.slice(i, i+2);
-    if (two.includes(twoCandidate)) {
+    if (alt.includes(twoCandidate) || two.includes(twoCandidate)) {
       out.push(twoCandidate);
       i += 2;
       continue;
     }
-    // 1 letra
     const ch = s[i];
-    if ("LJVSXD".includes(ch)) {
-      // X = MIércoles alternativo; lo normalizamos a "MI"
-      out.push(ch === "X" ? "MI" : ch);
-    }
+    if ("LJVSXD".includes(ch)) out.push(ch === "X" ? "MI" : ch);
     i += 1;
   }
   return out;
