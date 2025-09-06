@@ -5,8 +5,12 @@ export const CONFIG = {
   ELECTIVES_MIN: { PREMED: 12, BASICAS: 8, CLINICAS: 8 },
   GPA_MIN_PREMED_TO_BASICAS: 2.5,
   BLOCK_ORDER: ["PREMED", "BASICAS", "CLINICAS", "INTERNADO"],
+   GPA: {
+    COUNT_ONLY_PASSED: true,          // el índice solo cuenta materias Aprobadas
+    REQUIRE_GRADE_ON_PASS: true       // exigir calificación para aprobar
+  },
   GRADE_SCALE: {
-    mode: "numeric", // "numeric" | "letters"
+    mode: "numeric", // mantener numérico por defecto (RD)
     letters: { "A": 4.0, "A-": 3.7, "B+": 3.3, "B": 3.0, "B-": 2.7, "C+": 2.3, "C": 2.0, "C-": 1.7, "D": 1.0, "F": 0.0 },
     numeric: [
       { min: 90, gpa: 4.0 },

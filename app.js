@@ -92,9 +92,15 @@ function setKPIs() {
   const earned = state.dataset.courses.filter(c=>state.passed.has(c.id)).reduce((a,c)=>a+(c.credits||0),0);
   $("#kpiCredits").textContent  = `${earned} / ${total}`;
   $("#kpiProgress").textContent = total ? `${Math.round(earned/total*100)}%` : "0%";
-  const g = window.GPA?.calc(state.dataset.courses, state.grades, state.scaleMode);
+
+  const pool = CONFIG.GPA?.COUNT_ONLY_PASSED
+    ? state.dataset.courses.filter(c=>state.passed.has(c.id))
+    : state.dataset.courses;
+
+  const g = window.GPA?.calc(pool, state.grades, state.scaleMode);
   $("#kpiGPA").textContent = (g==null) ? "—" : g.toFixed(2);
 }
+
 
 //——— LISTA
 function renderList() {
@@ -182,16 +188,44 @@ function renderDetail(id) {
     </div>
   `;
 
-  $on($("#btnSaveGrade"), "click", ()=>{
-    const v = $("#inpGrade").value.trim();
-    if (v === "") delete state.grades[id];
-    else state.grades[id] = v;
-    save(); setKPIs();
-  });
-  const bp = $("#btnPass");
-  if (bp) $on(bp, "click", ()=> { if (isAvailable(id)) setPassed(id,true); });
+    $on($("#btnSaveGrade"), "click", ()=>{
+        const v = $("#inpGrade").value.trim();
+        if (v === "") delete state.grades[id];
+        else state.grades[id] = v;
+        save(); setKPIs();
+    });
+    const bp = $("#btnPass");
+    if (bp) $on(bp, "click", ()=> {
+    if (!isAvailable(id)) return;
 
-  const bu = $("#btnUnpass");
+    const needGrade = CONFIG.GPA?.REQUIRE_GRADE_ON_PASS;
+    const v = ($("#inpGrade")?.value || "").trim();
+
+    if (needGrade) {
+        if (state.scaleMode === "numeric") {
+        const n = Number(v);
+        if (!v || Number.isNaN(n) || n < 0 || n > 100) {
+            alert("Ingresa una calificación válida (0–100) antes de aprobar.");
+            $("#inpGrade")?.focus();
+            return;
+        }
+        } else {
+        // letras A–F (por si algún día cambias la escala)
+        const ok = !!CONFIG.GRADE_SCALE.letters[String(v).toUpperCase().trim()];
+        if (!v || !ok) {
+            alert("Ingresa una calificación en letras válida (A, A-, B+, ...).");
+            $("#inpGrade")?.focus();
+            return;
+        }
+        }
+        // si pasó la validación, guardamos la calificación
+        state.grades[id] = v;
+    }
+
+    setPassed(id, true);
+    });
+
+    const bu = $("#btnUnpass");
   if (bu) $on(bu, "click", ()=> setPassed(id,false));
 
   $on($("#btnAddPlan"), "click", ()=>{
@@ -290,7 +324,7 @@ async function boot() {
 
   // init grafo (cuando Cytoscape esté listo)
   if (window.Graph && document.getElementById("graph")) {
-    window.Graph.initGraph();
+    //window.Graph.initGraph();
   }
 
   // registra SW (solo https/localhost)
@@ -303,6 +337,15 @@ async function boot() {
 function showView(id){
   for (const el of ["#graph","#list","#plan"].map($)) el.hidden = true;
   $("#"+id).hidden = false;
+
+  if (id === "graph") {
+    if (!window.App.cy && window.Graph) {
+      window.Graph.initGraph();
+      setTimeout(()=> window.App.cy && window.App.cy.resize(), 0);
+    } else if (window.App.cy) {
+      window.App.cy.resize();
+    }
+  }
 }
 
 boot();
