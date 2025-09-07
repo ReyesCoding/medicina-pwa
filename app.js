@@ -214,7 +214,6 @@ function renderDetail(id) {
               ? `<button id="btnPass">Marcar aprobada</button>`
               : `<button id="btnPass" disabled title="Completa los prerrequisitos">Marcar aprobada</button>`)}
         <button id="btnSaveGrade" class="ghost">Guardar calificación</button>
-        <button id="btnAddPlan">Agregar al plan</button>
       </div>
     </div>
   `;
@@ -443,6 +442,18 @@ if (btnExp) {
   }
 }
 
+function rebuildIndexes(){
+  idx.clear(); deps.clear(); revDeps.clear();
+  for (const c of state.dataset.courses) {
+    idx.set(c.id, c);
+    deps.set(c.id, [...(c.prereqs || [])]);
+    for (const p of (c.prereqs || [])) {
+      if (!revDeps.has(p)) revDeps.set(p, []);
+      revDeps.get(p).push(c.id);
+    }
+  }
+}
+
 function showView(id){
   for (const el of ["#graph","#list","#plan"].map($)) el.hidden = true;
   $("#"+id).hidden = false;
@@ -516,6 +527,36 @@ renderPlan(); // para que aparezcan selectores
     a.click();
     URL.revokeObjectURL(a.href);
   };
+
+const extra = document.createElement("div");
+extra.className = "buttons";
+extra.innerHTML = `
+  <button id="btnCopyDataset">Copiar dataset</button>
+  <button id="btnPasteDataset">Pegar dataset</button>
+`;
+panel.appendChild(extra);
+
+document.getElementById("btnCopyDataset").onclick = async ()=>{
+  const txt = JSON.stringify(state.dataset, null, 2);
+  try { await navigator.clipboard.writeText(txt); alert("Dataset copiado al portapapeles."); }
+  catch { alert("No se pudo copiar. Selecciona y copia manualmente:\n\n"+txt); }
+};
+
+document.getElementById("btnPasteDataset").onclick = ()=>{
+  const raw = prompt("Pega aquí el JSON del dataset (con secciones)");
+  if (!raw) return;
+  try {
+    state.dataset = JSON.parse(raw);
+    saveDataset();
+    rebuildIndexes();
+    renderList();
+    renderPlan();
+    alert("Dataset pegado.");
+  } catch {
+    alert("JSON inválido.");
+  }
+};
+
 }
 
 function normalizeName(s){

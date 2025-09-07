@@ -96,21 +96,18 @@ function expandSlots(horario){
 function parsePastedSchedules(text){
   const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
   const out = {};
-  const dayLead = /([LMIXJVS]{1,4})\s*\d{1,2}:\d{2}/i;
+  const reLead = /(.*?)([LMIXJVS]{1,4})\s*\d{1,2}:\d{2}/i; // nombre + token días + hora
 
   for (const line of lines){
     let rest = line, crn = "";
-    const mcrn = rest.match(/^([A-Z0-9\-]{6,})\s+(.*)$/i);
+    const mcrn = rest.match(/^([A-Z0-9\-]{6,})\s+(.*)$/i); // CRN opcional al inicio
     if (mcrn) { crn = mcrn[1]; rest = mcrn[2]; }
 
-    const idx = rest.search(dayLead);
-    if (idx < 0) continue;
+    const m = reLead.exec(rest);
+    if (!m) continue;
 
-    let namePart = rest.slice(0, idx).trim();
-    let schedPart = rest.slice(idx).replace(/\(PRESENCIAL\)/ig,"").trim();
-
-    // Si el nombre terminó con un token de día (ej. "... ANATOMIA I MA")
-    namePart = namePart.replace(/\b([LMIXJVS]{1,4})$/i, "").trim();
+    const namePart  = m[1].trim(); // <- aquí tomamos TODO el nombre ANTES de MAJ
+    let   schedPart = rest.slice(m[1].length).replace(/\(PRESENCIAL\)/ig,"").trim();
 
     // Aula: último token alfanumérico
     let room = "";
@@ -120,10 +117,9 @@ function parsePastedSchedules(text){
       schedPart = tokens.join(" ");
     }
 
-    const key = normalizeName(namePart);
+    const key   = normalizeName(namePart);
     const slots = expandSlots(schedPart);
-    if (!out[key]) out[key] = [];
-    out[key].push({ crn, label: schedPart, room, career:"MED", slots });
+    (out[key] ??= []).push({ crn, label: schedPart, room, career:"MED", slots });
   }
   return out;
 }
