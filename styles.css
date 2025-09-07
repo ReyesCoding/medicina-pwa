@@ -30,3 +30,9 @@ input,select{width:100%;padding:8px 10px;border-radius:10px;border:1px solid #2a
   .wrap{grid-template-columns:1fr;gap:10px}
   #graph{height:50vh}
 }
+/* Plan rows en grid limpio */
+#planBody .plan-row{display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px 0;border-bottom:1px solid #1a2147}
+#planBody .plan-row .col.sec{grid-column:1 / -1}
+#planBody select.secSel{width:100%}
+#planBody .hint{font-size:12px;color:#9aa3cc;margin-left:6px}
+

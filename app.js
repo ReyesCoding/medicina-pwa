@@ -271,63 +271,84 @@ function renderDetail(id) {
 function renderPlan() {
   const body = $("#planBody");
   if (!body) return;
-  const ids = [...state.plan];
 
+  const ids = [...state.plan];
   const rows = ids.map(id => {
     const c = byId(id);
+    if (!c) return "";
     const secs = c.sections || [];
     const sel = state.selectedSections[id]?.crn || "";
     const opts = secs.length
       ? `<select data-id="${id}" class="secSel">
            <option value="">Elegir sección…</option>
-           ${secs.map(s=>`<option value="${s.crn}" ${s.crn===sel?"selected":""}>${s.crn || "(sin clave)"} — ${s.label} · ${s.room||""}</option>`).join("")}
+           ${secs.map(s => `
+             <option value="${s.crn}" ${String(s.crn)===String(sel) ? "selected" : ""}>
+               ${s.crn || "(sin clave)"} — ${s.label}${s.room ? " · "+s.room : ""}
+             </option>`).join("")}
          </select>`
       : `<span class="muted">Sin horarios cargados</span>`;
 
     return `
-      <div class="list-item" data-id="${id}">
-        <div><b>${c.id}</b> — ${c.name}</div>
-        <div>${c.credits} cr <button data-act="rm">Quitar</button></div>
-        <div style="flex-basis:100%; margin-top:6px">${opts}</div>
+      <div class="plan-row" data-id="${id}">
+        <div class="col name"><b>${c.id}</b> — ${c.name}</div>
+        <div class="col cr">${c.credits} cr <button data-act="rm">Quitar</button></div>
+        <div class="col sec">
+          ${opts} <span class="hint" id="hint-${id}"></span>
+        </div>
       </div>
     `;
   }).join("");
+
   body.innerHTML = rows || "<div class='muted'>No hay materias en el plan.</div>";
 
-  // gestionar quitar
-  body.querySelectorAll("[data-act='rm']").forEach(b => b.addEventListener("click", e=>{
-    const id = e.target.closest(".list-item").getAttribute("data-id");
-    delete state.selectedSections[id];
-    state.plan.delete(id);
-    save(); renderPlan();
-  }));
-
-  // seleccionar sección + chequear choques
-  body.querySelectorAll(".secSel").forEach(sel=>{
-    sel.addEventListener("change", e=>{
-      const cid = sel.getAttribute("data-id");
-      const c = byId(cid);
-      const secs = c.sections || [];
-      const pick = secs.find(s=>String(s.crn)===String(sel.value));
-      if (!pick) { delete state.selectedSections[cid]; save(); return; }
-
-      const tmp = {...state.selectedSections, [cid]: pick};
-      if (window.Schedule.hasConflict(tmp)) {
-        alert("Choque de horario con otra materia del plan. Elige otra sección.");
-        sel.value = state.selectedSections[cid]?.crn || ""; // revertir
-        return;
-      }
-      state.selectedSections[cid] = pick;
-      save();
+  // Quitar del plan
+  body.querySelectorAll("[data-act='rm']").forEach(b => {
+    b.addEventListener("click", e => {
+      const id = e.target.closest(".plan-row").getAttribute("data-id");
+      delete state.selectedSections[id];
+      state.plan.delete(id);
+      save(); renderPlan();
     });
   });
 
-  const used = ids.reduce((a,id)=>a+(byId(id)?.credits||0),0);
+  // Seleccionar sección + validar choques
+  body.querySelectorAll(".secSel").forEach(sel => {
+    sel.addEventListener("change", () => {
+      const cid  = sel.getAttribute("data-id");
+      const c    = byId(cid);
+      const secs = c?.sections || [];
+      const hint = document.getElementById(`hint-${cid}`);
+      const pick = secs.find(s => String(s.crn) === String(sel.value));
+
+      if (!pick) { // limpiar selección
+        delete state.selectedSections[cid];
+        if (hint) hint.textContent = "";
+        save();
+        return;
+      }
+
+      const tmp = { ...state.selectedSections, [cid]: pick };
+      if (window.Schedule?.hasConflict(tmp)) {
+        alert("Choque de horario con otra materia del plan. Elige otra sección.");
+        sel.value = state.selectedSections[cid]?.crn || "";
+        if (hint) hint.textContent = "";
+        return;
+      }
+
+      state.selectedSections[cid] = pick;
+      save();
+      if (hint) hint.textContent = "Sección guardada";
+    });
+  });
+
+  // Totales y botón sugerir
+  const used = ids.reduce((a,id)=> a + (byId(id)?.credits || 0), 0);
   $("#planInfo").textContent = `Créditos planificados: ${used} / ${state.maxCredits}`;
+
   const btn = $("#btnSuggest");
   if (btn && !btn._bound) {
     btn._bound = true;
-    btn.addEventListener("click", ()=> window.Planner?.suggestPlan());
+    btn.addEventListener("click", () => window.Planner?.suggestPlan());
   }
 }
 
