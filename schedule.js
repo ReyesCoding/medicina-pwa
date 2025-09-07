@@ -94,32 +94,39 @@ function expandSlots(horario){
 
 // Acepta líneas con o sin CRN al inicio
 function parsePastedSchedules(text){
-  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
-  const out = {};
-  const reLead = /(.*?)([LMIXJVS]{1,4})\s*\d{1,2}:\d{2}/i; // nombre + token días + hora
+  const out = [];
+  const CRN = /\b[A-Z]{3}\d{6}\b/g; // MED175043, etc.
 
-  for (const line of lines){
-    let rest = line, crn = "";
-    const mcrn = rest.match(/^([A-Z0-9\-]{6,})\s+(.*)$/i); // CRN opcional al inicio
-    if (mcrn) { crn = mcrn[1]; rest = mcrn[2]; }
+  // 1) segmentar por CRN (aunque estén en la misma línea)
+  const idxs = [];
+  let m; while ((m = CRN.exec(text)) !== null) idxs.push(m.index);
+  if (!idxs.length) return out;
 
-    const m = reLead.exec(rest);
-    if (!m) continue;
+  idxs.push(text.length);
+  for (let i=0;i<idxs.length-1;i++){
+    const seg = text.slice(idxs[i], idxs[i+1]).trim();
+    if (!seg) continue;
 
-    const namePart  = m[1].trim(); // <- aquí tomamos TODO el nombre ANTES de MAJ
-    let   schedPart = rest.slice(m[1].length).replace(/\(PRESENCIAL\)/ig,"").trim();
+    // 2) extraer CRN
+    const mcrn = seg.match(CRN);
+    const crn = mcrn ? mcrn[0] : "";
 
-    // Aula: último token alfanumérico
+    // 3) encontrar primer token día+hora y cortar nombre allí (lo ignoramos)
+    const reLead = /([LMIXJVS]{1,4})\s*\d{1,2}:\d{2}/i;
+    const mlead = seg.match(reLead);
+    if (!mlead) continue;
+
+    let schedPart = seg.slice(seg.indexOf(mlead[0])).replace(/\(PRESENCIAL\)/ig,"").trim();
+
+    // 4) aula (último token alfanumérico tipo A113/AS03)
     let room = "";
-    const tokens = schedPart.split(/\s+/);
-    if (tokens.length >= 2 && /^[A-Z0-9\-]+$/.test(tokens[tokens.length-1])) {
-      room = tokens.pop();
-      schedPart = tokens.join(" ");
+    const tt = schedPart.split(/\s+/);
+    if (tt.length>=2 && /^[A-Z0-9\-]+$/.test(tt[tt.length-1])) {
+      room = tt.pop(); schedPart = tt.join(" ");
     }
 
-    const key   = normalizeName(namePart);
     const slots = expandSlots(schedPart);
-    (out[key] ??= []).push({ crn, label: schedPart, room, career:"MED", slots });
+    out.push({ crn, label: schedPart, room, career:"MED", slots });
   }
   return out;
 }

@@ -473,52 +473,108 @@ const isAdmin = new URL(location.href).searchParams.get("admin") === CONFIG.ADMI
 function injectAdminButton(){
   if (!isAdmin) return;
   const panel = document.querySelectorAll(".panel")[0];
+  if (!panel) return;
+
+  // Bloque Admin
   const box = document.createElement("div");
   box.className = "section";
   box.innerHTML = `
     <div class="section">Admin (oculto)</div>
-    <div class="buttons">
+
+    <div class="buttons" style="gap:8px;flex-wrap:wrap;align-items:center">
+      <label>Materia:
+        <select id="selCourseAdmin"></select>
+      </label>
+      <label><input type="radio" name="modeSecs" id="modeReplace" checked> Reemplazar</label>
+      <label><input type="radio" name="modeSecs" id="modeMerge"> Mezclar</label>
+    </div>
+
+    <div class="buttons" style="gap:8px;flex-wrap:wrap">
       <button id="btnPasteSchedules">Pegar horarios (admin)</button>
       <button id="btnExportDataset">Exportar dataset</button>
+      <button id="btnCopyDataset">Copiar dataset</button>
+      <button id="btnPasteDataset">Pegar dataset</button>
     </div>
+
+    <div id="adminSecs" class="section"></div>
   `;
   panel.appendChild(box);
 
-  document.getElementById("btnPasteSchedules").onclick = async ()=>{
-    const raw = prompt("Pega aquí el bloque de horarios (texto plano)");
+  // Llenar combo de materias
+  const selC = document.getElementById("selCourseAdmin");
+  selC.innerHTML = (state.dataset.courses || [])
+    .map(c => `<option value="${c.id}">${c.id} — ${c.name}</option>`)
+    .join("");
+
+  // UI listado de secciones + borrar
+  function renderAdminSectionsUI(){
+    const cid = selC.value;
+    const c   = byId(cid);
+    const box = document.getElementById("adminSecs");
+    if (!box || !c) return;
+    const secs = c.sections || [];
+
+    box.innerHTML = secs.length ? `
+      <div class="section">Secciones actuales</div>
+      ${secs.map((s,i)=>`
+        <div class="list-item">
+          <div><b>${s.crn || "(s/clave)"}</b> — ${s.label}${s.room? " · "+s.room:""}</div>
+          <button data-i="${i}" data-act="delSec">Eliminar</button>
+        </div>
+      `).join("")}
+      <button id="btnClearSecs" class="danger">Vaciar todas</button>
+    ` : `<div class="muted">Sin secciones cargadas</div>`;
+
+    // eliminar una
+    box.querySelectorAll('[data-act="delSec"]').forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const i = Number(btn.dataset.i);
+        c.sections.splice(i,1);
+        // si la selección guardada ya no existe, límpiala
+        if (state.selectedSections[cid] &&
+            !(c.sections||[]).some(x => String(x.crn)===String(state.selectedSections[cid].crn))) {
+          delete state.selectedSections[cid];
+        }
+        saveDataset(); save(); renderPlan(); renderAdminSectionsUI();
+      });
+    });
+
+    // vaciar todas
+    const clear = document.getElementById("btnClearSecs");
+    if (clear) clear.addEventListener("click", ()=>{
+      c.sections = [];
+      delete state.selectedSections[cid];
+      saveDataset(); save(); renderPlan(); renderAdminSectionsUI();
+    });
+  }
+  selC.addEventListener("change", renderAdminSectionsUI);
+  renderAdminSectionsUI();
+
+  // Pegar horarios (a la materia elegida)
+  document.getElementById("btnPasteSchedules").onclick = ()=>{
+    const raw = prompt("Pega aquí las secciones (una o varias, con o sin saltos de línea)");
     if (!raw) return;
-  const map = window.Schedule.parsePastedSchedules(raw);
-let attached = 0;
-const unmatched = new Set(Object.keys(map));
 
-const courses = state.dataset.courses.map(c => ({ c, key: normalizeName(c.name) }));
+    const cid = selC.value;
+    const course = byId(cid);
+    if (!course) { alert("Elige una materia destino."); return; }
 
-for (const { c, key } of courses) {
-  let arr = map[key];
+    const modeReplace = document.getElementById("modeReplace")?.checked;
+    const secs = window.Schedule.parsePastedSchedules(raw); // array de secciones
+    if (!secs.length) { alert("No se detectaron secciones."); return; }
 
-  // Fallback 1: busca clave que contenga nuestro key
-  if (!arr) {
-    const hit = [...unmatched].find(k => k.includes(key));
-    if (hit) arr = map[hit];
-  }
-  // Fallback 2: busca clave incluida dentro de nuestro key
-  if (!arr) {
-    const hit = [...unmatched].find(k => key.includes(k));
-    if (hit) arr = map[hit];
-  }
+    // dedupe por CRN|label|room
+    const map = new Map();
+    const base = modeReplace ? [] : (course.sections || []);
+    for (const s of base) map.set(`${s.crn}|${s.label}|${s.room}`, s);
+    for (const s of secs) map.set(`${s.crn}|${s.label}|${s.room}`, s);
+    course.sections = [...map.values()];
 
-  if (arr && arr.length) {
-    c.sections = arr;
-    attached++;
-    unmatched.delete(key);
-  }
-}
-
-saveDataset();
-alert(`Secciones adjuntadas a ${attached} materias.` + (unmatched.size ? `\nNo hubo coincidencia para:\n- ${[...unmatched].join("\n- ")}` : ""));
-renderPlan(); // para que aparezcan selectores
+    saveDataset(); rebuildIndexes(); renderPlan(); renderAdminSectionsUI();
+    alert(`${modeReplace ? "Reemplazadas" : "Agregadas"} ${secs.length} secciones en ${course.id}.`);
   };
 
+  // Exportar dataset (JSON)
   document.getElementById("btnExportDataset").onclick = ()=>{
     const blob = new Blob([JSON.stringify(state.dataset, null, 2)], {type:"application/json"});
     const a = document.createElement("a");
@@ -528,36 +584,31 @@ renderPlan(); // para que aparezcan selectores
     URL.revokeObjectURL(a.href);
   };
 
-const extra = document.createElement("div");
-extra.className = "buttons";
-extra.innerHTML = `
-  <button id="btnCopyDataset">Copiar dataset</button>
-  <button id="btnPasteDataset">Pegar dataset</button>
-`;
-panel.appendChild(extra);
+  // Copiar dataset (portapapeles)
+  document.getElementById("btnCopyDataset").onclick = async ()=>{
+    const txt = JSON.stringify(state.dataset, null, 2);
+    try { await navigator.clipboard.writeText(txt); alert("Dataset copiado al portapapeles."); }
+    catch { alert("No se pudo copiar. Selecciona y copia manualmente:\n\n"+txt); }
+  };
 
-document.getElementById("btnCopyDataset").onclick = async ()=>{
-  const txt = JSON.stringify(state.dataset, null, 2);
-  try { await navigator.clipboard.writeText(txt); alert("Dataset copiado al portapapeles."); }
-  catch { alert("No se pudo copiar. Selecciona y copia manualmente:\n\n"+txt); }
-};
-
-document.getElementById("btnPasteDataset").onclick = ()=>{
-  const raw = prompt("Pega aquí el JSON del dataset (con secciones)");
-  if (!raw) return;
-  try {
-    state.dataset = JSON.parse(raw);
-    saveDataset();
-    rebuildIndexes();
-    renderList();
-    renderPlan();
-    alert("Dataset pegado.");
-  } catch {
-    alert("JSON inválido.");
-  }
-};
-
+  // Pegar dataset (JSON)
+  document.getElementById("btnPasteDataset").onclick = ()=>{
+    const raw = prompt("Pega aquí el JSON del dataset (con secciones)");
+    if (!raw) return;
+    try {
+      state.dataset = JSON.parse(raw);
+      saveDataset(); rebuildIndexes(); renderList(); renderPlan();
+      // refrescar combo y panel
+      selC.innerHTML = (state.dataset.courses || [])
+        .map(c => `<option value="${c.id}">${c.id} — ${c.name}</option>`).join("");
+      renderAdminSectionsUI();
+      alert("Dataset pegado.");
+    } catch {
+      alert("JSON inválido.");
+    }
+  };
 }
+
 
 function normalizeName(s){
   return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/\s+/g," ").trim();
@@ -572,5 +623,4 @@ function loadDatasetOverride(){
 }
 
 state.selectedSections = {}; // { courseId: sectionObj }
-
 boot();
