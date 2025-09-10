@@ -1,5 +1,5 @@
 // pwa/sw.js
-const CACHE = "medicina-static-v15";
+const CACHE = "medicina-static-v16";
 
 // ✅ Archivos estáticos a precache (no incluir sections.json)
 const PRECACHE_URLS = [
@@ -39,25 +39,34 @@ self.addEventListener("activate", (e) => {
 // Fetch: branch especial network-first para sections.json
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
-if (url.pathname.endsWith("/data/medicine-2013-sections.json")) {
-  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
-  return;
-}
 
+  // ❗ Ignora esquemas no http/https (chrome-extension, data:, etc.)
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    return; // deja que el navegador gestione
+  }
 
-  // 2) Todo lo estático → CACHE-FIRST
-  //    (si quieres network-first para .json base, cámbialo aquí)
+  // 1) JSON de secciones → NETWORK-FIRST
+  if (url.pathname.endsWith("/data/medicine-2013-sections.json")) {
+    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+    return;
+  }
+
+  // 2) Resto → CACHE-FIRST
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
       return fetch(e.request).then(resp => {
-        // Opcional: cachea GET navegables
-        if (e.request.method === "GET" && resp && resp.status === 200 && resp.type === "basic") {
+        // Cachea solo respuestas básicas del mismo origen
+        if (
+          e.request.method === "GET" &&
+          resp && resp.status === 200 && resp.type === "basic" &&
+          (url.origin === self.location.origin)
+        ) {
           const clone = resp.clone();
           caches.open(CACHE).then(cache => cache.put(e.request, clone));
         }
         return resp;
-      }).catch(() => cached); // fallback
+      }).catch(() => cached);
     })
   );
 });

@@ -10,6 +10,9 @@ const state = {
   scaleMode: CONFIG.GRADE_SCALE.mode
 };
 
+// 👇 Añádelo arriba, tras 'state' y antes de 'const App = {...}'
+function isPassed(id){ return state.passed.has(id); }
+
 const App = {
   config: CONFIG,
   state,
