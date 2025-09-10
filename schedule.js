@@ -5,8 +5,6 @@ function normalizeName(s){
   return String(s||"")
     .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
     .toUpperCase()
-    .replace(/^LAB\.?\s+/,"")
-    .replace(/^LABORATORIO\s+/,"")
     .replace(/\s+/g," ")
     .trim();
 }

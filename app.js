@@ -364,16 +364,44 @@ async function fetchSectionsJSON(versionTag = "") {
   if (!res.ok) throw new Error("sections 404");
   return res.json();
 }
-function mergeSections(dataset, sectionsDoc, { overwrite = true } = {}) {
+
+function normalizeCourseName(s){
+  return String(s||"")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .toUpperCase()
+    .replace(/\s+/g," ")
+    .trim();
+}
+
+function keyOfSec(s){ return `${s.crn||""}|${s.label||""}|${s.room||""}`; }
+
+function mergeSections(dataset, sectionsDoc, { overwrite = false } = {}) {
   if (!sectionsDoc?.courses) return;
-  const byId = new Map(dataset.courses.map(c => [c.id, c]));
-  for (const { id, sections } of sectionsDoc.courses) {
-    const c = byId.get(id);
-    if (c && Array.isArray(sections)) {
-      if (overwrite || !c.sections) c.sections = sections;
+
+  const byId    = new Map(dataset.courses.map(c => [c.id, c]));
+  const byNameN = new Map(dataset.courses.map(c => [normalizeCourseName(c.name), c]));
+
+  for (const entry of sectionsDoc.courses) {
+    const target =
+      (entry.id && byId.get(entry.id)) ||
+      (entry.name && byNameN.get(normalizeCourseName(entry.name)));
+
+    if (!target) continue;
+
+    const incoming = Array.isArray(entry.sections) ? entry.sections : [];
+
+    if (overwrite || !Array.isArray(target.sections) || target.sections.length === 0) {
+      // sobrescribe o llena si no había nada
+      target.sections = incoming;
+    } else {
+      // mezcla sin duplicar (por crn|label|room)
+      const map = new Map((target.sections||[]).map(s => [keyOfSec(s), s]));
+      for (const s of incoming) map.set(keyOfSec(s), s);
+      target.sections = [...map.values()];
     }
   }
 }
+
 async function reloadSections(versionTag = "", opts = { overwrite: true, notify: false }) {
   try {
     const doc = await fetchSectionsJSON(versionTag);
@@ -485,26 +513,28 @@ function injectAdminButton(){
   renderAdminSectionsUI();
 
   document.getElementById("btnPasteSchedules").onclick = ()=>{
-    const raw = prompt("Pega aquí las secciones (una o varias, con o sin saltos de línea)");
-    if (!raw) return;
+  const raw = prompt("Pega aquí las secciones (una o varias, con o sin saltos de línea)");
+  if (!raw) return;
 
-    const cid = selC.value;
-    const course = byId(cid);
-    if (!course) { alert("Elige una materia destino."); return; }
+  const cid = selC.value;
+  const course = byId(cid);
+  if (!course) { alert("Elige una materia destino."); return; }
 
-    const modeReplace = document.getElementById("modeReplace")?.checked;
-    const secs = window.Schedule.parsePastedSchedules(raw); // array
-    if (!secs.length) { alert("No se detectaron secciones."); return; }
+  const modeReplace = document.getElementById("modeReplace")?.checked;
 
-    const map = new Map();
-    const base = modeReplace ? [] : (course.sections || []);
-    for (const s of base) map.set(`${s.crn}|${s.label}|${s.room}`, s);
-    for (const s of secs) map.set(`${s.crn}|${s.label}|${s.room}`, s);
-    course.sections = [...map.values()];
+  const parsed = window.Schedule.parsePastedSchedules(raw);
+  const secs = Array.isArray(parsed) ? parsed : Object.values(parsed||{}).flat();
+  if (!secs.length) { alert("No se detectaron secciones."); return; }
 
-    saveDataset(); rebuildIndexes(); renderPlan(); renderAdminSectionsUI();
-    alert(`${modeReplace ? "Reemplazadas" : "Agregadas"} ${secs.length} secciones en ${course.id}.`);
-  };
+  const map = new Map();
+  const base = modeReplace ? [] : (course.sections || []);
+  for (const s of base) map.set(keyOfSec(s), s);
+  for (const s of secs) map.set(keyOfSec(s), s);
+  course.sections = [...map.values()];
+
+  saveDataset(); rebuildIndexes(); renderPlan(); renderAdminSectionsUI();
+  alert(`${modeReplace ? "Reemplazadas" : "Agregadas"} ${secs.length} secciones en ${course.id}.`);
+};
 
   document.getElementById("btnExportDataset").onclick = ()=>{
     const blob = new Blob([JSON.stringify(state.dataset, null, 2)], {type:"application/json"});
@@ -550,9 +580,29 @@ function injectAdminButton(){
     URL.revokeObjectURL(a.href);
   };
 
-  document.getElementById("btnRefreshSections").onclick = ()=>{
-    reloadSections(Date.now().toString(), { overwrite: true, notify: true });
+ // helper persistente
+function wasSeeded(){ return localStorage.getItem("sections-seeded-v1")==="1"; }
+function markSeeded(){ localStorage.setItem("sections-seeded-v1","1"); }
+
+const btnRefresh = document.getElementById("btnRefreshSections");
+if (btnRefresh) {
+  const setLabel = () => {
+    btnRefresh.textContent = wasSeeded()
+      ? "Reimportar datos (sobrescribe)"
+      : "Importar datos (una vez)";
   };
+  setLabel();
+
+  btnRefresh.onclick = async ()=>{
+    const overwrite = wasSeeded()    // si ya importaste antes → permite sobrescribir
+      ? confirm("¿Sobrescribir secciones existentes con las del repo?")
+      : false;                       // primera vez: no sobrescribe, solo rellena
+
+    await reloadSections(Date.now().toString(), { overwrite, notify: true });
+    if (!wasSeeded()) markSeeded();
+    setLabel();
+  };
+}
 }
 
 //——— Utils dataset local/override
