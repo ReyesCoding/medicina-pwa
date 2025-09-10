@@ -32,6 +32,9 @@ const revDeps = new Map();  // dependientes: id -> [children]
 App.deps = deps;
 App.revDeps = revDeps;
 
+// —— Admin flag (mover arriba para que esté disponible en injectAdminButton/boot)
+const isAdmin = new URL(location.href).searchParams.get("admin") === CONFIG.ADMIN_KEY;
+
 //——— Storage
 const LSKEY = "medicina-progress";
 function save() {
@@ -42,7 +45,6 @@ function save() {
     maxCredits: state.maxCredits,
     scaleMode: state.scaleMode,
     selectedSections: state.selectedSections
-
   }));
 }
 function load() {
@@ -63,16 +65,26 @@ function load() {
 function $(s){ return document.querySelector(s) }
 function $on(el, ev, fn){ el && el.addEventListener(ev, fn) }
 
+//——— Índices utilitarios
 function byId(id){ return idx.get(id) || null }
-function isPassed(id){ return state.passed.has(id) }
+function rebuildIndexes(){
+  idx.clear(); deps.clear(); revDeps.clear();
+  for (const c of (state.dataset?.courses || [])) {
+    idx.set(c.id, c);
+    deps.set(c.id, [...(c.prereqs || [])]);
+    for (const p of (c.prereqs || [])) {
+      if (!revDeps.has(p)) revDeps.set(p, []);
+      revDeps.get(p).push(c.id);
+    }
+  }
+}
 
-// Disponibilidad básica: todos los prereqs aprobados (las “puertas de bloque” las activamos cuando tengamos dataset final)
+// Disponibilidad: todos los prereqs aprobados
 function isAvailable(id) {
   const c = byId(id);
   if (!c) return false;
   const prs = (c.prereqs || []);
   for (const p of prs) if (!state.passed.has(p)) return false;
-  // TODO: puertas por bloque + electivas mínimas (cuando tengamos dataset curado completo)
   return true;
 }
 
@@ -117,7 +129,6 @@ function setKPIs() {
   $("#kpiGPA").textContent = (g==null) ? "—" : g.toFixed(2);
 }
 
-
 //——— LISTA
 function renderList(){
   const list = $("#listBody");
@@ -133,7 +144,6 @@ function renderList(){
     return true;
   });
 
-  // agrupa por cuatrimestre si existe c.term; si no, por block
   const keyOf = c => (c.term ?? c.cuatrimestre ?? c.block ?? "OTROS");
   const groups = {};
   for (const c of all) (groups[keyOf(c)] ??= []).push(c);
@@ -160,7 +170,6 @@ function renderList(){
     ${arr.map(row).join("")}
   `).join("");
 
-  // bindings igual que antes…
   list.querySelectorAll(".list-item").forEach(rowEl=>{
     rowEl.addEventListener("click", e=>{
       const id = rowEl.getAttribute("data-id");
@@ -218,52 +227,35 @@ function renderDetail(id) {
     </div>
   `;
 
-    $on($("#btnSaveGrade"), "click", ()=>{
-        const v = $("#inpGrade").value.trim();
-        if (v === "") delete state.grades[id];
-        else state.grades[id] = v;
-        save(); setKPIs();
-    });
-    const bp = $("#btnPass");
-    if (bp) $on(bp, "click", ()=> {
-    if (!isAvailable(id)) return;
+  $on($("#btnSaveGrade"), "click", ()=>{
+    const v = $("#inpGrade").value.trim();
+    if (v === "") delete state.grades[id];
+    else state.grades[id] = v;
+    save(); setKPIs();
+  });
 
+  const bp = $("#btnPass");
+  if (bp) $on(bp, "click", ()=>{
+    if (!isAvailable(id)) return;
     const needGrade = CONFIG.GPA?.REQUIRE_GRADE_ON_PASS;
     const v = ($("#inpGrade")?.value || "").trim();
-
-   if (needGrade) {
-  const n = Number(v);
-  if (!v || Number.isNaN(n) || n < 0 || n > 100) {
-    alert("Ingresa una calificación válida (0–100) antes de aprobar.");
-    $("#inpGrade")?.focus(); return;
-  }
-  if (n < CONFIG.GPA.PASSING_MIN_NUMERIC) {
-    alert(`No se aprueba con nota menor a ${CONFIG.GPA.PASSING_MIN_NUMERIC}.`);
-    $("#inpGrade")?.focus(); return;
-  }
-  state.grades[id] = n; // guarda como número
-}
-
-    setPassed(id, true);
-    });
-
-    const bu = $("#btnUnpass");
-  if (bu) $on(bu, "click", ()=> setPassed(id,false));
-
-  $on($("#btnAddPlan"), "click", ()=>{
-    // añade materia (y co-req no aprobados) si hay espacio
-    const max = state.maxCredits;
-    const pack = new Set([id, ...(c.coreqs||[]).filter(cid => !isPassed(cid))]);
-    let need = 0;
-    for (const pid of pack) {
-      const pc = byId(pid); if (!pc || !isAvailable(pid)) { alert("No disponible (co-req o prerrequisitos)"); return; }
-      if (!state.plan.has(pid)) need += (pc.credits || 0);
+    if (needGrade) {
+      const n = Number(v);
+      if (!v || Number.isNaN(n) || n < 0 || n > 100) {
+        alert("Ingresa una calificación válida (0–100) antes de aprobar.");
+        $("#inpGrade")?.focus(); return;
+      }
+      if (n < CONFIG.GPA.PASSING_MIN_NUMERIC) {
+        alert(`No se aprueba con nota menor a ${CONFIG.GPA.PASSING_MIN_NUMERIC}.`);
+        $("#inpGrade")?.focus(); return;
+      }
+      state.grades[id] = n;
     }
-    const used = [...state.plan].reduce((a, cid) => a + (byId(cid)?.credits||0), 0);
-    if (used + need > max) { alert("Supera el tope de créditos del período"); return; }
-    for (const pid of pack) state.plan.add(pid);
-    save(); renderPlan();
+    setPassed(id, true);
   });
+
+  const bu = $("#btnUnpass");
+  if (bu) $on(bu, "click", ()=> setPassed(id,false));
 }
 
 //——— PLAN
@@ -278,20 +270,19 @@ function renderPlan() {
     const secs = c.sections || [];
     const sel = state.selectedSections[id]?.crn || "";
     const opts = secs.length
-  ? `<select data-id="${id}" class="secSel">
-       <option value="">Elegir sección…</option>
-       ${secs.map(s => `
-         <option
-           value="${s.crn}"
-           ${String(s.crn)===String(sel) ? "selected" : ""}
-           ${s.closed ? "disabled" : ""}
-           title="${s.closed ? "Sección cerrada" : "Disponible"}"
-         >
-           ${s.crn || "(s/clave)"} — ${s.label}${s.room ? " · "+s.room : ""}${s.closed ? " [Cerrado]" : ""}
-         </option>`).join("")}
-     </select>`
-  : `<span class="muted">Sin horarios cargados</span>`;
-
+      ? `<select data-id="${id}" class="secSel">
+           <option value="">Elegir sección…</option>
+           ${secs.map(s => `
+             <option
+               value="${s.crn}"
+               ${String(s.crn)===String(sel) ? "selected" : ""}
+               ${s.closed ? "disabled" : ""}
+               title="${s.closed ? "Sección cerrada" : "Disponible"}"
+             >
+               ${s.crn || "(s/clave)"} — ${s.label}${s.room ? " · "+s.room : ""}${s.closed ? " [Cerrado]" : ""}
+             </option>`).join("")}
+         </select>`
+      : `<span class="muted">Sin horarios cargados</span>`;
 
     return `
       <div class="plan-row" data-id="${id}">
@@ -316,44 +307,44 @@ function renderPlan() {
     });
   });
 
-  // Seleccionar sección + validar choques  
+  // Seleccionar sección + validar choques
   body.querySelectorAll(".secSel").forEach(sel => {
-  sel.addEventListener("change", () => {
-    const cid  = sel.getAttribute("data-id");
-    const c    = byId(cid);
-    const secs = c?.sections || [];
-    const hint = document.getElementById(`hint-${cid}`);
-    const pick = secs.find(s => String(s.crn) === String(sel.value));
+    sel.addEventListener("change", () => {
+      const cid  = sel.getAttribute("data-id");
+      const c    = byId(cid);
+      const secs = c?.sections || [];
+      const hint = document.getElementById(`hint-${cid}`);
+      const pick = secs.find(s => String(s.crn) === String(sel.value));
 
-    if (!pick) { // limpiar selección
-      delete state.selectedSections[cid];
-      if (hint) hint.textContent = "";
+      if (!pick) {
+        delete state.selectedSections[cid];
+        if (hint) hint.textContent = "";
+        save();
+        return;
+      }
+
+      // Cerrado
+      if (pick?.closed) {
+        alert("Esa sección está cerrada. Elige otra opción.");
+        sel.value = state.selectedSections[cid]?.crn || "";
+        if (hint) hint.textContent = "";
+        return;
+      }
+
+      // Choques
+      const tmp = { ...state.selectedSections, [cid]: pick };
+      if (window.Schedule?.hasConflict(tmp)) {
+        alert("Choque de horario con otra materia del plan. Elige otra sección.");
+        sel.value = state.selectedSections[cid]?.crn || "";
+        if (hint) hint.textContent = "";
+        return;
+      }
+
+      state.selectedSections[cid] = pick;
       save();
-      return;
-    }
-
-    // ⬇️ AQUÍ va el check de "Cerrado"
-    if (pick?.closed) {
-      alert("Esa sección está cerrada. Elige otra opción.");
-      sel.value = state.selectedSections[cid]?.crn || "";
-      if (hint) hint.textContent = "";
-      return;
-    }
-
-    // luego el check de choques
-    const tmp = { ...state.selectedSections, [cid]: pick };
-    if (window.Schedule?.hasConflict(tmp)) {
-      alert("Choque de horario con otra materia del plan. Elige otra sección.");
-      sel.value = state.selectedSections[cid]?.crn || "";
-      if (hint) hint.textContent = "";
-      return;
-    }
-
-    state.selectedSections[cid] = pick;
-    save();
-    if (hint) hint.textContent = "Sección guardada";
+      if (hint) hint.textContent = "Sección guardada";
+    });
   });
-});
 
   // Totales y botón sugerir
   const used = ids.reduce((a,id)=> a + (byId(id)?.credits || 0), 0);
@@ -366,13 +357,13 @@ function renderPlan() {
   }
 }
 
+// —— Secciones públicas (repo)
 async function fetchSectionsJSON(versionTag = "") {
   const url = `./data/medicine-2013-sections.json${versionTag ? `?v=${versionTag}` : ""}`;
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error("sections 404");
   return res.json();
 }
-
 function mergeSections(dataset, sectionsDoc, { overwrite = true } = {}) {
   if (!sectionsDoc?.courses) return;
   const byId = new Map(dataset.courses.map(c => [c.id, c]));
@@ -383,7 +374,6 @@ function mergeSections(dataset, sectionsDoc, { overwrite = true } = {}) {
     }
   }
 }
-
 async function reloadSections(versionTag = "", opts = { overwrite: true, notify: false }) {
   try {
     const doc = await fetchSectionsJSON(versionTag);
@@ -398,112 +388,7 @@ async function reloadSections(versionTag = "", opts = { overwrite: true, notify:
   }
 }
 
-
-
-//——— Boot
-async function boot() {
-   load();
-
-  // 1) Carga base del pensum
-  try {
-    const res = await fetch("./data/medicine-2013.json");
-    state.dataset = await res.json();
-  } catch (e) {
-    console.error("Dataset no disponible:", e);
-    state.dataset = { program:"VACÍO", courses:[] };
-  }
-  // permite que un dataset con secciones persista localmente (admin)
-    loadDatasetOverride();
-    injectAdminButton();
-  // índices
-  idx.clear(); deps.clear(); revDeps.clear();
-  for (const c of state.dataset.courses) {
-    idx.set(c.id, c);
-    deps.set(c.id, [...(c.prereqs || [])]);
-    for (const p of (c.prereqs || [])) {
-      if (!revDeps.has(p)) revDeps.set(p, []);
-      revDeps.get(p).push(c.id);
-    }
-  }
-  // enlaza UI base
-  $("#inpMaxCredits").value = state.maxCredits;
-  $on($("#inpMaxCredits"), "change", e=>{
-    state.maxCredits = Math.max(8, Math.min(30, Number(e.target.value)||CONFIG.DEFAULT_MAX_CREDITS));
-    save(); renderPlan();
-  });
-  $("#selScale").value = state.scaleMode;
-  $on($("#selScale"), "change", e=>{
-    state.scaleMode = e.target.value;
-    save(); setKPIs();
-  });
-  // Fijamos escala numérica y ocultamos el selector
-// Fijamos escala numérica y ocultamos el selector
-state.scaleMode = "numeric";
-const sel = document.getElementById("selScale");
-if (sel) {
-  sel.value = "numeric";
-  sel.disabled = true;
-  const lbl = sel.closest("label");
-  if (lbl) lbl.style.display = "none";
-}
-// Oculta importar
-const btnImp = $("#btnImportProgress");
-const fileImp = $("#fileProgress");
-if (btnImp) btnImp.style.display = "none";
-if (fileImp) fileImp.remove();
-
-// Exportar aprobadas (CSV)
-const btnExp = $("#btnExportProgress");
-if (btnExp) {
-  btnExp.textContent = "Exportar aprobadas (.csv)";
-  btnExp.onclick = () => {
-    const rows = state.dataset.courses
-      .filter(c => state.passed.has(c.id))
-      .map(c => `${c.id},"${c.name.replace(/"/g,'""')}",${c.credits}`);
-    const csv = "id,nombre,creditos\n" + rows.join("\n");
-    const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "aprobadas.csv";
-    a.click();
-    URL.revokeObjectURL(a.href);
-  };
-}
-
-  $on($("#btnViewGraph"), "click", ()=>showView("graph"));
-  $on($("#btnViewList"),  "click", ()=>showView("list"));
-  $on($("#btnViewPlan"),  "click", ()=>showView("plan"));
-
-  // render inicial
-  setKPIs();
-  renderList();
-  renderPlan();
-  showView("list");
-
-  // init grafo (cuando Cytoscape esté listo)
-  if (window.Graph && document.getElementById("graph")) {
-    //window.Graph.initGraph();
-  }
-
-  // registra SW (solo https/localhost)
-  if ((location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")
-      && "serviceWorker" in navigator) {
-    try { await navigator.serviceWorker.register("./sw.js"); } catch {}
-  }
-}
-
-function rebuildIndexes(){
-  idx.clear(); deps.clear(); revDeps.clear();
-  for (const c of state.dataset.courses) {
-    idx.set(c.id, c);
-    deps.set(c.id, [...(c.prereqs || [])]);
-    for (const p of (c.prereqs || [])) {
-      if (!revDeps.has(p)) revDeps.set(p, []);
-      revDeps.get(p).push(c.id);
-    }
-  }
-}
-
+//——— Vista
 function showView(id){
   for (const el of ["#graph","#list","#plan"].map($)) el.hidden = true;
   $("#"+id).hidden = false;
@@ -516,17 +401,15 @@ function showView(id){
       window.App.cy.resize();
     }
   }
- document.body.classList.toggle("plan-focus", id==="plan");
+  document.body.classList.toggle("plan-focus", id==="plan");
 }
 
-const isAdmin = new URL(location.href).searchParams.get("admin") === CONFIG.ADMIN_KEY;
-
+//——— Admin UI
 function injectAdminButton(){
   if (!isAdmin) return;
   const panel = document.querySelectorAll(".panel")[0];
   if (!panel) return;
 
-  // Bloque Admin
   const box = document.createElement("div");
   box.className = "section";
   box.innerHTML = `
@@ -553,13 +436,11 @@ function injectAdminButton(){
   `;
   panel.appendChild(box);
 
-  // Llenar combo de materias
   const selC = document.getElementById("selCourseAdmin");
   selC.innerHTML = (state.dataset.courses || [])
     .map(c => `<option value="${c.id}">${c.id} — ${c.name}</option>`)
     .join("");
 
-  // UI listado de secciones + borrar
   function renderAdminSectionsUI(){
     const cid = selC.value;
     const c   = byId(cid);
@@ -581,12 +462,10 @@ function injectAdminButton(){
       <button id="btnClearSecs" class="danger">Vaciar todas</button>
     ` : `<div class="muted">Sin secciones cargadas</div>`;
 
-    // eliminar una
     box.querySelectorAll('[data-act="delSec"]').forEach(btn=>{
       btn.addEventListener("click", ()=>{
         const i = Number(btn.dataset.i);
         c.sections.splice(i,1);
-        // si la selección guardada ya no existe, límpiala
         if (state.selectedSections[cid] &&
             !(c.sections||[]).some(x => String(x.crn)===String(state.selectedSections[cid].crn))) {
           delete state.selectedSections[cid];
@@ -595,7 +474,6 @@ function injectAdminButton(){
       });
     });
 
-    // vaciar todas
     const clear = document.getElementById("btnClearSecs");
     if (clear) clear.addEventListener("click", ()=>{
       c.sections = [];
@@ -606,7 +484,6 @@ function injectAdminButton(){
   selC.addEventListener("change", renderAdminSectionsUI);
   renderAdminSectionsUI();
 
-  // Pegar horarios (a la materia elegida)
   document.getElementById("btnPasteSchedules").onclick = ()=>{
     const raw = prompt("Pega aquí las secciones (una o varias, con o sin saltos de línea)");
     if (!raw) return;
@@ -616,10 +493,9 @@ function injectAdminButton(){
     if (!course) { alert("Elige una materia destino."); return; }
 
     const modeReplace = document.getElementById("modeReplace")?.checked;
-    const secs = window.Schedule.parsePastedSchedules(raw); // array de secciones
+    const secs = window.Schedule.parsePastedSchedules(raw); // array
     if (!secs.length) { alert("No se detectaron secciones."); return; }
 
-    // dedupe por CRN|label|room
     const map = new Map();
     const base = modeReplace ? [] : (course.sections || []);
     for (const s of base) map.set(`${s.crn}|${s.label}|${s.room}`, s);
@@ -630,7 +506,6 @@ function injectAdminButton(){
     alert(`${modeReplace ? "Reemplazadas" : "Agregadas"} ${secs.length} secciones en ${course.id}.`);
   };
 
-  // Exportar dataset (JSON completo)
   document.getElementById("btnExportDataset").onclick = ()=>{
     const blob = new Blob([JSON.stringify(state.dataset, null, 2)], {type:"application/json"});
     const a = document.createElement("a");
@@ -640,21 +515,18 @@ function injectAdminButton(){
     URL.revokeObjectURL(a.href);
   };
 
-  // Copiar dataset (portapapeles)
   document.getElementById("btnCopyDataset").onclick = async ()=>{
     const txt = JSON.stringify(state.dataset, null, 2);
     try { await navigator.clipboard.writeText(txt); alert("Dataset copiado al portapapeles."); }
     catch { alert("No se pudo copiar. Selecciona y copia manualmente:\n\n"+txt); }
   };
 
-  // Pegar dataset (JSON completo)
   document.getElementById("btnPasteDataset").onclick = ()=>{
     const raw = prompt("Pega aquí el JSON del dataset (con secciones)");
     if (!raw) return;
     try {
       state.dataset = JSON.parse(raw);
       saveDataset(); rebuildIndexes(); renderList(); renderPlan();
-      // refrescar combo y panel
       selC.innerHTML = (state.dataset.courses || [])
         .map(c => `<option value="${c.id}">${c.id} — ${c.name}</option>`).join("");
       renderAdminSectionsUI();
@@ -664,7 +536,6 @@ function injectAdminButton(){
     }
   };
 
-  // Exportar SOLO secciones (para publicar en repo)
   document.getElementById("btnExportSections").onclick = ()=>{
     const payload = {
       courses: state.dataset.courses
@@ -679,13 +550,12 @@ function injectAdminButton(){
     URL.revokeObjectURL(a.href);
   };
 
-  // Actualizar datos (traer JSON público del repo)
   document.getElementById("btnRefreshSections").onclick = ()=>{
-    reloadSections(Date.now().toString(), { overwrite: true, notify: true }); // cache-buster + alerta
+    reloadSections(Date.now().toString(), { overwrite: true, notify: true });
   };
 }
 
-
+//——— Utils dataset local/override
 function normalizeName(s){
   return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/\s+/g," ").trim();
 }
@@ -699,4 +569,91 @@ function loadDatasetOverride(){
 }
 
 state.selectedSections = {}; // { courseId: sectionObj }
+
+//——— Boot
+async function boot() {
+  load();
+
+  // 1) Carga base del pensum
+  try {
+    const res = await fetch("./data/medicine-2013.json");
+    state.dataset = await res.json();
+  } catch (e) {
+    console.error("Dataset no disponible:", e);
+    state.dataset = { program: "VACÍO", courses: [] };
+  }
+
+  // 2) Overrides locales del admin (si pegaste dataset en este dispositivo)
+  if (typeof loadDatasetOverride === "function") loadDatasetOverride();
+
+  // 3) Índices mínimos + primer render (por si falla red)
+  rebuildIndexes();
+  renderList(); renderPlan();
+
+  // 4) Mezcla secciones públicas del repo (silencioso en boot; re-renderiza)
+  await reloadSections("", { overwrite: true, notify: false });
+
+  // 5) Inyecta el panel Admin (ya hay dataset e índices)
+  injectAdminButton?.();
+
+  // 6) Enlaces UI base
+  $("#inpMaxCredits").value = state.maxCredits;
+  $on($("#inpMaxCredits"), "change", e=>{
+    state.maxCredits = Math.max(8, Math.min(30, Number(e.target.value)||CONFIG.DEFAULT_MAX_CREDITS));
+    save(); renderPlan();
+  });
+
+  // Fijamos escala numérica y ocultamos el selector
+  state.scaleMode = "numeric";
+  const sel = document.getElementById("selScale");
+  if (sel) {
+    sel.value = "numeric";
+    sel.disabled = true;
+    const lbl = sel.closest("label");
+    if (lbl) lbl.style.display = "none";
+  }
+
+  // Oculta importar & Exportar aprobadas (.csv)
+  const btnImp = $("#btnImportProgress");
+  const fileImp = $("#fileProgress");
+  if (btnImp) btnImp.style.display = "none";
+  if (fileImp) fileImp.remove();
+  const btnExp = $("#btnExportProgress");
+  if (btnExp) {
+    btnExp.textContent = "Exportar aprobadas (.csv)";
+    btnExp.onclick = () => {
+      const rows = state.dataset.courses
+        .filter(c => state.passed.has(c.id))
+        .map(c => `${c.id},"${c.name.replace(/"/g,'""')}",${c.credits}`);
+      const csv = "id,nombre,creditos\n" + rows.join("\n");
+      const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "aprobadas.csv";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    };
+  }
+
+  // Navegación
+  $on($("#btnViewGraph"), "click", ()=>showView("graph"));
+  $on($("#btnViewList"),  "click", ()=>showView("list"));
+  $on($("#btnViewPlan"),  "click", ()=>showView("plan"));
+
+  // KPIs + vista inicial
+  setKPIs();
+  showView("list");
+
+  // Registro del Service Worker (raíz)
+  if ((location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")
+      && "serviceWorker" in navigator) {
+    try { await navigator.serviceWorker.register("./sw.js"); } catch {}
+  }
+
+  // Grafo (on-demand)
+  if (window.Graph && document.getElementById("graph")) {
+    // window.Graph.initGraph();
+  }
+}
+
 boot();
