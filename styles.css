@@ -11,15 +11,24 @@ body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui, -a
 .topbar{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
 .topbar h1{margin:0;font-size:18px}
 .badge{font-size:12px;background:#2a2f56;color:#c7d2fe;padding:2px 8px;border-radius:999px;margin-left:6px}
+
 .wrap{display:grid;grid-template-columns:280px 1fr 300px;gap:12px;padding:12px}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
 .section{font-size:12px;color:#cbd3ff;margin:6px 0 8px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;min-height:260px}
+
 .buttons{display:flex;flex-wrap:wrap;gap:8px}
 button{background:#1b2350;border:1px solid #2a3681;color:#cfe1ff;padding:8px 10px;border-radius:10px;cursor:pointer}
 button:hover{background:#222c63}
-.stack{display:flex;flex-direction:column;gap:8px}
+button.danger{background:#5b1b1b;border-color:#7a2a2a}
+button.danger:hover{background:#6a2222}
+
+stack{display:flex;flex-direction:column;gap:8px}
 input,select{width:100%;padding:8px 10px;border-radius:10px;border:1px solid #2a3681;background:#0f1330;color:#e8edff}
+button:focus-visible, input:focus-visible, select:focus-visible{
+  outline:2px solid #8b5cf6; outline-offset:2px;
+}
+
 .toolbar{display:flex;gap:8px;align-items:center;margin-bottom:8px}
 .kpis{display:flex;gap:8px}
 .kpi{background:#0f1330;border:1px solid var(--line);border-radius:10px;padding:8px 10px}
@@ -29,13 +38,21 @@ input,select{width:100%;padding:8px 10px;border-radius:10px;border:1px solid #2a
 #graph{height:58vh}
 .list-item{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1a2147;padding:8px 0}
 .pill{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid #2a2f56;background:#0f1330;color:#cbd3ff;font-size:12px;margin-right:6px}
+
 @media (max-width: 980px){
   .wrap{grid-template-columns:1fr;gap:10px}
   #graph{height:50vh}
 }
+
 /* Plan rows en grid limpio */
 #planBody .plan-row{display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px 0;border-bottom:1px solid #1a2147}
 #planBody .plan-row .col.sec{grid-column:1 / -1}
 #planBody select.secSel{width:100%}
 #planBody .hint{font-size:12px;color:#9aa3cc;margin-left:6px}
 
+/* Oculta detalle y expande contenido cuando estás en Plan */
+.plan-focus #detail { display:none; }
+.plan-focus .wrap { grid-template-columns: 1fr !important; } /* expande la zona central */
+
+/* Estados de opción no disponible (iOS-friendly) */
+.secSel option:disabled { color:#9ca3af; opacity:.7 }

@@ -278,14 +278,20 @@ function renderPlan() {
     const secs = c.sections || [];
     const sel = state.selectedSections[id]?.crn || "";
     const opts = secs.length
-      ? `<select data-id="${id}" class="secSel">
-           <option value="">Elegir sección…</option>
-           ${secs.map(s => `
-             <option value="${s.crn}" ${String(s.crn)===String(sel) ? "selected" : ""}>
-               ${s.crn || "(sin clave)"} — ${s.label}${s.room ? " · "+s.room : ""}
-             </option>`).join("")}
-         </select>`
-      : `<span class="muted">Sin horarios cargados</span>`;
+  ? `<select data-id="${id}" class="secSel">
+       <option value="">Elegir sección…</option>
+       ${secs.map(s => `
+         <option
+           value="${s.crn}"
+           ${String(s.crn)===String(sel) ? "selected" : ""}
+           ${s.closed ? "disabled" : ""}
+           title="${s.closed ? "Sección cerrada" : "Disponible"}"
+         >
+           ${s.crn || "(s/clave)"} — ${s.label}${s.room ? " · "+s.room : ""}${s.closed ? " [Cerrado]" : ""}
+         </option>`).join("")}
+     </select>`
+  : `<span class="muted">Sin horarios cargados</span>`;
+
 
     return `
       <div class="plan-row" data-id="${id}">
@@ -310,35 +316,44 @@ function renderPlan() {
     });
   });
 
-  // Seleccionar sección + validar choques
+  // Seleccionar sección + validar choques  
   body.querySelectorAll(".secSel").forEach(sel => {
-    sel.addEventListener("change", () => {
-      const cid  = sel.getAttribute("data-id");
-      const c    = byId(cid);
-      const secs = c?.sections || [];
-      const hint = document.getElementById(`hint-${cid}`);
-      const pick = secs.find(s => String(s.crn) === String(sel.value));
+  sel.addEventListener("change", () => {
+    const cid  = sel.getAttribute("data-id");
+    const c    = byId(cid);
+    const secs = c?.sections || [];
+    const hint = document.getElementById(`hint-${cid}`);
+    const pick = secs.find(s => String(s.crn) === String(sel.value));
 
-      if (!pick) { // limpiar selección
-        delete state.selectedSections[cid];
-        if (hint) hint.textContent = "";
-        save();
-        return;
-      }
-
-      const tmp = { ...state.selectedSections, [cid]: pick };
-      if (window.Schedule?.hasConflict(tmp)) {
-        alert("Choque de horario con otra materia del plan. Elige otra sección.");
-        sel.value = state.selectedSections[cid]?.crn || "";
-        if (hint) hint.textContent = "";
-        return;
-      }
-
-      state.selectedSections[cid] = pick;
+    if (!pick) { // limpiar selección
+      delete state.selectedSections[cid];
+      if (hint) hint.textContent = "";
       save();
-      if (hint) hint.textContent = "Sección guardada";
-    });
+      return;
+    }
+
+    // ⬇️ AQUÍ va el check de "Cerrado"
+    if (pick?.closed) {
+      alert("Esa sección está cerrada. Elige otra opción.");
+      sel.value = state.selectedSections[cid]?.crn || "";
+      if (hint) hint.textContent = "";
+      return;
+    }
+
+    // luego el check de choques
+    const tmp = { ...state.selectedSections, [cid]: pick };
+    if (window.Schedule?.hasConflict(tmp)) {
+      alert("Choque de horario con otra materia del plan. Elige otra sección.");
+      sel.value = state.selectedSections[cid]?.crn || "";
+      if (hint) hint.textContent = "";
+      return;
+    }
+
+    state.selectedSections[cid] = pick;
+    save();
+    if (hint) hint.textContent = "Sección guardada";
   });
+});
 
   // Totales y botón sugerir
   const used = ids.reduce((a,id)=> a + (byId(id)?.credits || 0), 0);
@@ -351,10 +366,45 @@ function renderPlan() {
   }
 }
 
+async function fetchSectionsJSON(versionTag = "") {
+  const url = `./data/medicine-2013-sections.json${versionTag ? `?v=${versionTag}` : ""}`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error("sections 404");
+  return res.json();
+}
+
+function mergeSections(dataset, sectionsDoc, { overwrite = true } = {}) {
+  if (!sectionsDoc?.courses) return;
+  const byId = new Map(dataset.courses.map(c => [c.id, c]));
+  for (const { id, sections } of sectionsDoc.courses) {
+    const c = byId.get(id);
+    if (c && Array.isArray(sections)) {
+      if (overwrite || !c.sections) c.sections = sections;
+    }
+  }
+}
+
+async function reloadSections(versionTag = "", opts = { overwrite: true, notify: false }) {
+  try {
+    const doc = await fetchSectionsJSON(versionTag);
+    mergeSections(state.dataset, doc, { overwrite: !!opts.overwrite });
+    saveDataset();            // cache local último conocido
+    rebuildIndexes();         // re-indexa deps/ids
+    renderList(); renderPlan();
+    if (opts.notify) alert("Datos de secciones actualizados.");
+  } catch (e) {
+    if (opts.notify) alert("No se pudo actualizar las secciones (offline o archivo no publicado).");
+    console.warn("No se pudo actualizar secciones:", e);
+  }
+}
+
+
+
 //——— Boot
 async function boot() {
-  load();
-  // carga dataset
+   load();
+
+  // 1) Carga base del pensum
   try {
     const res = await fetch("./data/medicine-2013.json");
     state.dataset = await res.json();
@@ -438,7 +488,7 @@ if (btnExp) {
   // registra SW (solo https/localhost)
   if ((location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")
       && "serviceWorker" in navigator) {
-    try { await navigator.serviceWorker.register("./pwa/sw.js"); } catch {}
+    try { await navigator.serviceWorker.register("./sw.js"); } catch {}
   }
 }
 
@@ -466,6 +516,7 @@ function showView(id){
       window.App.cy.resize();
     }
   }
+ document.body.classList.toggle("plan-focus", id==="plan");
 }
 
 const isAdmin = new URL(location.href).searchParams.get("admin") === CONFIG.ADMIN_KEY;
@@ -479,7 +530,7 @@ function injectAdminButton(){
   const box = document.createElement("div");
   box.className = "section";
   box.innerHTML = `
-    <div class="section">Admin (oculto)</div>
+    <div class="section">Admin</div>
 
     <div class="buttons" style="gap:8px;flex-wrap:wrap;align-items:center">
       <label>Materia:
@@ -494,6 +545,8 @@ function injectAdminButton(){
       <button id="btnExportDataset">Exportar dataset</button>
       <button id="btnCopyDataset">Copiar dataset</button>
       <button id="btnPasteDataset">Pegar dataset</button>
+      <button id="btnExportSections">Exportar secciones (repo)</button>
+      <button id="btnRefreshSections">Actualizar datos</button>
     </div>
 
     <div id="adminSecs" class="section"></div>
@@ -518,7 +571,10 @@ function injectAdminButton(){
       <div class="section">Secciones actuales</div>
       ${secs.map((s,i)=>`
         <div class="list-item">
-          <div><b>${s.crn || "(s/clave)"}</b> — ${s.label}${s.room? " · "+s.room:""}</div>
+          <div>
+            <b>${s.crn || "(s/clave)"}</b> — ${s.label}${s.room ? " · "+s.room : ""}
+            ${s.closed ? '<span class="pill" style="background:#6b7280">Cerrado</span>' : ""}
+          </div>
           <button data-i="${i}" data-act="delSec">Eliminar</button>
         </div>
       `).join("")}
@@ -574,7 +630,7 @@ function injectAdminButton(){
     alert(`${modeReplace ? "Reemplazadas" : "Agregadas"} ${secs.length} secciones en ${course.id}.`);
   };
 
-  // Exportar dataset (JSON)
+  // Exportar dataset (JSON completo)
   document.getElementById("btnExportDataset").onclick = ()=>{
     const blob = new Blob([JSON.stringify(state.dataset, null, 2)], {type:"application/json"});
     const a = document.createElement("a");
@@ -591,7 +647,7 @@ function injectAdminButton(){
     catch { alert("No se pudo copiar. Selecciona y copia manualmente:\n\n"+txt); }
   };
 
-  // Pegar dataset (JSON)
+  // Pegar dataset (JSON completo)
   document.getElementById("btnPasteDataset").onclick = ()=>{
     const raw = prompt("Pega aquí el JSON del dataset (con secciones)");
     if (!raw) return;
@@ -606,6 +662,26 @@ function injectAdminButton(){
     } catch {
       alert("JSON inválido.");
     }
+  };
+
+  // Exportar SOLO secciones (para publicar en repo)
+  document.getElementById("btnExportSections").onclick = ()=>{
+    const payload = {
+      courses: state.dataset.courses
+        .filter(c => Array.isArray(c.sections) && c.sections.length)
+        .map(c => ({ id: c.id, sections: c.sections }))
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "medicine-2013-sections.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  // Actualizar datos (traer JSON público del repo)
+  document.getElementById("btnRefreshSections").onclick = ()=>{
+    reloadSections(Date.now().toString(), { overwrite: true, notify: true }); // cache-buster + alerta
   };
 }
 
