@@ -1,5 +1,5 @@
 // pwa/sw.js
-const CACHE = "medicina-static-v19";
+const CACHE = "medicina-static-v20";
 
 // ✅ Archivos estáticos a precache (no incluir sections.json)
 const PRECACHE_URLS = [
@@ -12,7 +12,6 @@ const PRECACHE_URLS = [
   "./gpa.js",
   "./schedule.js",
   "./graph.js",
-  "./data/medicine-2013.json",
   "./assets/icon-192.png",
   "./assets/icon-512.png",
   "./pwa/manifest.json"
@@ -36,32 +35,27 @@ self.addEventListener("activate", (e) => {
   self.clients.claim();
 });
 
-// Fetch: branch especial network-first para sections.json
+// Fetch: branch especial network-first para JSONs dinámicos
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
 
-  // ❗ Ignora esquemas no http/https (chrome-extension, data:, etc.)
-  if (url.protocol !== "http:" && url.protocol !== "https:") {
-    return; // deja que el navegador gestione
-  }
+  // Ignora esquemas no http/https (chrome-extension, data:, etc.)
+  if (url.protocol !== "http:" && url.protocol !== "https:") return;
 
-  // 1) JSON de secciones → NETWORK-FIRST
-  if (url.pathname.endsWith("/data/medicine-2013-sections.json")) {
+  // ✅ Network-first para pensum y secciones
+  if (url.pathname.endsWith("/data/medicine-2013.json") ||
+      url.pathname.endsWith("/data/medicine-2013-sections.json")) {
     e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
     return;
   }
 
-  // 2) Resto → CACHE-FIRST
+  // Resto: cache-first
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
       return fetch(e.request).then(resp => {
-        // Cachea solo respuestas básicas del mismo origen
-        if (
-          e.request.method === "GET" &&
-          resp && resp.status === 200 && resp.type === "basic" &&
-          (url.origin === self.location.origin)
-        ) {
+        if (e.request.method === "GET" && resp && resp.status === 200 && resp.type === "basic" &&
+            (url.origin === self.location.origin)) {
           const clone = resp.clone();
           caches.open(CACHE).then(cache => cache.put(e.request, clone));
         }
