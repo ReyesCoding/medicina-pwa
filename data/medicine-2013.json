@@ -1,13 +1,2534 @@
 {
-  "program": "Medicina (2013) - DEMO",
+  "program": "Medicina (2013)",
+  "version": "2025-09-11",
   "courses": [
-    { "id":"BIO-101","code":"BIO-101","name":"Biología General","credits":4,"ht":3,"hp":2,"block":"PREMED","prereqs":[],"coreqs":[],"is_elective":false,"elective_group":null },
-    { "id":"QUI-101","code":"QUI-101","name":"Química General","credits":4,"ht":3,"hp":2,"block":"PREMED","prereqs":[],"coreqs":[],"is_elective":false,"elective_group":null },
-    { "id":"ANA-201","code":"ANA-201","name":"Anatomía I","credits":4,"ht":3,"hp":2,"block":"BASICAS","prereqs":["BIO-101","QUI-101"],"coreqs":[],"is_elective":false,"elective_group":null },
-    { "id":"ANA-202","code":"ANA-202","name":"Anatomía II","credits":4,"ht":3,"hp":2,"block":"BASICAS","prereqs":["ANA-201"],"coreqs":[],"is_elective":false,"elective_group":null },
-    { "id":"FIS-301","code":"FIS-301","name":"Fisiología I","credits":4,"ht":3,"hp":2,"block":"BASICAS","prereqs":["ANA-201"],"coreqs":["LAB-FIS-301"],"is_elective":false,"elective_group":null },
-    { "id":"LAB-FIS-301","code":"LAB-FIS-301","name":"Lab. Fisiología I","credits":1,"ht":0,"hp":2,"block":"BASICAS","prereqs":[],"coreqs":["FIS-301"],"is_elective":false,"elective_group":null },
-    { "id":"CLI-401","code":"CLI-401","name":"Clínica Introductoria","credits":4,"ht":3,"hp":2,"block":"CLINICAS","prereqs":["ANA-202","FIS-301"],"coreqs":[],"is_elective":false,"elective_group":null },
-    { "id":"ELE-PREM-1","code":"ELE-PREM-1","name":"Electiva Premédica","credits":3,"ht":3,"hp":0,"block":"PREMED","prereqs":[],"coreqs":[],"is_elective":true,"elective_group":"GEN" }
+    {
+      "id": "ESP-095",
+      "code": "ESP-095",
+      "name": "LENGUA ESPAÑOLA BASICA",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "1",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "ING-100",
+      "code": "ING-100",
+      "name": "INGLES I",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "1",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "MAT-095",
+      "code": "MAT-095",
+      "name": "MATEMATICA BASICA",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "1",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "MED-100",
+      "code": "MED-100",
+      "name": "BIOLOGIA I",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "1",
+      "area": "PREMEDICA",
+      "coreqs": [
+        "MED-010"
+      ]
+    },
+    {
+      "id": "MED-010",
+      "code": "MED-010",
+      "name": "LABORATORIO DE BIOLOGIA I",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "1",
+      "area": "PREMEDICA",
+      "coreqs": [
+        "MED-100"
+      ]
+    },
+    {
+      "id": "ORI-112",
+      "code": "ORI-112",
+      "name": "ORIENTACION UNIVERSITARIA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "1",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "SOC-116",
+      "code": "SOC-116",
+      "name": "METODOLOGIA DE LA INVESTIGACION",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "1",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "ESP-181",
+      "code": "ESP-181",
+      "name": "LENGUA ESPAÑOLA I",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "2",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "ESP-095"
+      ]
+    },
+    {
+      "id": "ING-110",
+      "code": "ING-110",
+      "name": "INGLES II",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "2",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "ING-100"
+      ]
+    },
+    {
+      "id": "MAT-100",
+      "code": "MAT-100",
+      "name": "MATEMATICA I",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "2",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "MAT-095"
+      ]
+    },
+    {
+      "id": "SOC-110",
+      "code": "SOC-110",
+      "name": "HISTORIA UNIVERSAL",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "2",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "SOC-150",
+      "code": "SOC-150",
+      "name": "EDUCACION PARA EL MEDIO AMBIENTE",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "2",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "SOC-180",
+      "code": "SOC-180",
+      "name": "INTRODUCCION A LA FILOSOFIA",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "2",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "SOC-700",
+      "code": "SOC-700",
+      "name": "CULTURA Y CIVISMO",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "2",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "ESP-189",
+      "code": "ESP-189",
+      "name": "LENGUA ESPAÑOLA II",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "3",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "ESP-181"
+      ]
+    },
+    {
+      "id": "ING-120",
+      "code": "ING-120",
+      "name": "INGLES III",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "3",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "ING-110"
+      ]
+    },
+    {
+      "id": "MAT-110",
+      "code": "MAT-110",
+      "name": "MATEMATICA II",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "3",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "MAT-100"
+      ]
+    },
+    {
+      "id": "MED-344",
+      "code": "MED-344",
+      "name": "MEDICINA SOCIAL",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "3",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "MED-750",
+      "code": "MED-750",
+      "name": "QUIMICA INORGANICA I",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "3",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "MAT-100"
+      ],
+      "coreqs": [
+        "MED-755"
+      ]
+    },
+    {
+      "id": "MED-755",
+      "code": "MED-755",
+      "name": "LABORATORIO DE QUIMICA INORGANICA I",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "3",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "MAT-100"
+      ],
+      "coreqs": [
+        "MED-750"
+      ]
+    },
+    {
+      "id": "SIC-102",
+      "code": "SIC-102",
+      "name": "INTRODUCCION A LA PSICOLOGIA",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "3",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "SOC-420",
+      "code": "SOC-420",
+      "name": "HISTORIA SOCIAL DOMINICANA",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "3",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "INF-103",
+      "code": "INF-103",
+      "name": "OFIMATICA",
+      "ht": 16,
+      "hp": 32,
+      "th": 48,
+      "credits": 2,
+      "cuatrimestre": "4",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "ING-130",
+      "code": "ING-130",
+      "name": "INGLES IV",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "4",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "ING-120"
+      ]
+    },
+    {
+      "id": "MAT-190",
+      "code": "MAT-190",
+      "name": "FISICA I",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "4",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "MAT-100"
+      ],
+      "coreqs": [
+        "MAT-191"
+      ]
+    },
+    {
+      "id": "MAT-191",
+      "code": "MAT-191",
+      "name": "LABORATORIO DE FISICA I",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "4",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "MAT-100"
+      ],
+      "coreqs": [
+        "MAT-190"
+      ]
+    },
+    {
+      "id": "MED-150",
+      "code": "MED-150",
+      "name": "ORIENTACION MEDICA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "4",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "MED-760",
+      "code": "MED-760",
+      "name": "QUÍMICA INORGANICA II",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "4",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "MED-750",
+        "MED-755"
+      ],
+      "coreqs": [
+        "MED-765"
+      ]
+    },
+    {
+      "id": "MED-765",
+      "code": "MED-765",
+      "name": "LABORATORIO DE QUÍMICA INORGANICA II",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "4",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "MED-750",
+        "MED-755"
+      ],
+      "coreqs": [
+        "MED-760"
+      ]
+    },
+    {
+      "id": "SIC-400",
+      "code": "SIC-400",
+      "name": "PSICOLOGIA CLINICA I",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "4",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "SIC-102"
+      ]
+    },
+    {
+      "id": "ING-140",
+      "code": "ING-140",
+      "name": "INGLES V",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "5",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "ING-130"
+      ]
+    },
+    {
+      "id": "MED-160",
+      "code": "MED-160",
+      "name": "BIOESTADISTICA",
+      "ht": 48,
+      "hp": 32,
+      "th": 80,
+      "credits": 4,
+      "cuatrimestre": "5",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "MAT-110"
+      ]
+    },
+    {
+      "id": "MED-203",
+      "code": "MED-203",
+      "name": "LAS TICS APLICADAS A LA SALUD",
+      "ht": 32,
+      "hp": 32,
+      "th": 64,
+      "credits": 3,
+      "cuatrimestre": "5",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "INF-103"
+      ]
+    },
+    {
+      "id": "MED-401",
+      "code": "MED-401",
+      "name": "BIOFISICA",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "5",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "MAT-190",
+        "MAT-191"
+      ]
+    },
+    {
+      "id": "MED-770",
+      "code": "MED-770",
+      "name": "QUIMICA ORGANICA I",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "5",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "MED-760",
+        "MED-765"
+      ],
+      "coreqs": [
+        "MED-774"
+      ]
+    },
+    {
+      "id": "MED-774",
+      "code": "MED-774",
+      "name": "LABORATORIO DE QUIMICA ORGANICA I",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "5",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "MED-760",
+        "MED-765"
+      ],
+      "coreqs": [
+        "MED-770"
+      ]
+    },
+    {
+      "id": "SOC-280",
+      "code": "SOC-280",
+      "name": "ANTROPOLOGIA",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "5",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "ECO-101",
+      "code": "ECO-101",
+      "name": "ECONOMIA Y SALUD",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "6",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "MED-110",
+      "code": "MED-110",
+      "name": "HISTORIA DE LA MEDICINA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "6",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "MED-395",
+      "code": "MED-395",
+      "name": "FUNDAMENTOS DE ANATOMIA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "6",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "MED-010",
+        "MED-100"
+      ],
+      "coreqs": [
+        "MED-396"
+      ]
+    },
+    {
+      "id": "MED-396",
+      "code": "MED-396",
+      "name": "LABORATORIO DE FUNDAMENTOS DE ANATOMIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "6",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "MED-010",
+        "MED-100"
+      ],
+      "coreqs": [
+        "MED-395"
+      ]
+    },
+    {
+      "id": "MED-397",
+      "code": "MED-397",
+      "name": "FUNDAMENTOS DE FISIOLOGIA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "6",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "MED-010",
+        "MED-100"
+      ],
+      "coreqs": [
+        "MED-398"
+      ]
+    },
+    {
+      "id": "MED-398",
+      "code": "MED-398",
+      "name": "LABORATORIO DE FUNDAMENTOS DE FISIOLOGIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "6",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "MED-010",
+        "MED-100"
+      ],
+      "coreqs": [
+        "MED-397"
+      ]
+    },
+    {
+      "id": "MED-632",
+      "code": "MED-632",
+      "name": "BIOLOGIA CELULAR Y MOLECULAR",
+      "ht": 48,
+      "hp": 32,
+      "th": 80,
+      "credits": 4,
+      "cuatrimestre": "6",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "MED-010",
+        "MED-100"
+      ]
+    },
+    {
+      "id": "MED-775",
+      "code": "MED-775",
+      "name": "QUIMICA ORGANICA II",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "6",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "MED-770",
+        "MED-774"
+      ],
+      "coreqs": [
+        "MED-776"
+      ]
+    },
+    {
+      "id": "MED-776",
+      "code": "MED-776",
+      "name": "LABORATORIO DE QUIMICA ORGANICA II",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "6",
+      "area": "PREMEDICA",
+      "prereqs": [
+        "MED-770",
+        "MED-774"
+      ],
+      "coreqs": [
+        "MED-775"
+      ]
+    },
+    {
+      "id": "SOC-140",
+      "code": "SOC-140",
+      "name": "RELACIONES HUMANAS",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "6",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "ENF-101",
+      "code": "ENF-101",
+      "name": "CURSO DE ENFERMERIA BÁSICA",
+      "ht": 48,
+      "hp": 32,
+      "th": 80,
+      "credits": 4,
+      "cuatrimestre": "6",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "ING-160",
+      "code": "ING-160",
+      "name": "INGLES TÉCNICO MÉDICO",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "6",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "MED-986",
+      "code": "MED-986",
+      "name": "SALUD SEXUAL Y REPRODUCTIVA",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "6",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "MED-995",
+      "code": "MED-995",
+      "name": "MORAL MÉDICA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "6",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "MED-996",
+      "code": "MED-996",
+      "name": "SALUD OCUPACIONAL",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "6",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "MED-997",
+      "code": "MED-997",
+      "name": "ADMINISTRACION DE SERVICIOS DE SALUD",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "6",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "MED-999",
+      "code": "MED-999",
+      "name": "LEGISLACION MEDICA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "6",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "SOC-480",
+      "code": "SOC-480",
+      "name": "ETIQUETA Y PROTOCOLO",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "6",
+      "area": "PREMEDICA"
+    },
+    {
+      "id": "MED-172",
+      "code": "MED-172",
+      "name": "ANATOMIA I",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "7",
+      "area": "BASICAS",
+      "coreqs": [
+        "MED-175"
+      ]
+    },
+    {
+      "id": "MED-175",
+      "code": "MED-175",
+      "name": "LABORATORIO DE ANATOMIA I",
+      "ht": 0,
+      "hp": 64,
+      "th": 64,
+      "credits": 2,
+      "cuatrimestre": "7",
+      "area": "BASICAS",
+      "coreqs": [
+        "MED-172"
+      ]
+    },
+    {
+      "id": "MED-192",
+      "code": "MED-192",
+      "name": "BIOQUIMICA I",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "7",
+      "area": "BASICAS",
+      "coreqs": [
+        "MED-197"
+      ]
+    },
+    {
+      "id": "MED-197",
+      "code": "MED-197",
+      "name": "LABORATORIO DE BIOQUIMICA I",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "7",
+      "area": "BASICAS",
+      "coreqs": [
+        "MED-192"
+      ]
+    },
+    {
+      "id": "MED-200",
+      "code": "MED-200",
+      "name": "EMBRIOLOGIA",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "7",
+      "area": "BASICAS"
+    },
+    {
+      "id": "MED-232",
+      "code": "MED-232",
+      "name": "FISIOLOGIA I",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "7",
+      "area": "BASICAS",
+      "coreqs": [
+        "MED-235"
+      ]
+    },
+    {
+      "id": "MED-235",
+      "code": "MED-235",
+      "name": "LABORATORIO DE FISIOLOGIA I",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "7",
+      "area": "BASICAS",
+      "coreqs": [
+        "MED-232"
+      ]
+    },
+    {
+      "id": "MED-860",
+      "code": "MED-860",
+      "name": "HISTOLOGIA",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "7",
+      "area": "BASICAS",
+      "coreqs": [
+        "MED-865"
+      ]
+    },
+    {
+      "id": "MED-865",
+      "code": "MED-865",
+      "name": "LABORATORIO DE HISTOLOGIA",
+      "ht": 0,
+      "hp": 64,
+      "th": 64,
+      "credits": 2,
+      "cuatrimestre": "7",
+      "area": "BASICAS",
+      "coreqs": [
+        "MED-860"
+      ]
+    },
+    {
+      "id": "MED-212",
+      "code": "MED-212",
+      "name": "ANATOMIA II",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "8",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-172",
+        "MED-175"
+      ],
+      "coreqs": [
+        "MED-214"
+      ]
+    },
+    {
+      "id": "MED-214",
+      "code": "MED-214",
+      "name": "LABORATORIO DE ANATOMIA II",
+      "ht": 0,
+      "hp": 64,
+      "th": 64,
+      "credits": 2,
+      "cuatrimestre": "8",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-172",
+        "MED-175"
+      ],
+      "coreqs": [
+        "MED-212"
+      ]
+    },
+    {
+      "id": "MED-272",
+      "code": "MED-272",
+      "name": "MICROBIOLOGIA MEDICA",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "8",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-860",
+        "MED-865"
+      ],
+      "coreqs": [
+        "MED-274"
+      ]
+    },
+    {
+      "id": "MED-274",
+      "code": "MED-274",
+      "name": "LABORATORIO DE MICROBIOLOGIA MEDICA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "8",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-860",
+        "MED-865"
+      ],
+      "coreqs": [
+        "MED-272"
+      ]
+    },
+    {
+      "id": "MED-292",
+      "code": "MED-292",
+      "name": "FISIOLOGIA II",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "8",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-232",
+        "MED-235"
+      ],
+      "coreqs": [
+        "MED-295"
+      ]
+    },
+    {
+      "id": "MED-295",
+      "code": "MED-295",
+      "name": "LABORATORIO DE FISIOLOGIA II",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "8",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-232",
+        "MED-235"
+      ],
+      "coreqs": [
+        "MED-292"
+      ]
+    },
+    {
+      "id": "MED-300",
+      "code": "MED-300",
+      "name": "PATOLOGIA I",
+      "ht": 96,
+      "hp": 0,
+      "th": 96,
+      "credits": 6,
+      "cuatrimestre": "8",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-860",
+        "MED-865"
+      ],
+      "coreqs": [
+        "MED-305"
+      ]
+    },
+    {
+      "id": "MED-305",
+      "code": "MED-305",
+      "name": "LABORATORIO DE PATOLOGIA I",
+      "ht": 0,
+      "hp": 64,
+      "th": 64,
+      "credits": 2,
+      "cuatrimestre": "8",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-860",
+        "MED-865"
+      ],
+      "coreqs": [
+        "MED-300"
+      ]
+    },
+    {
+      "id": "MED-606",
+      "code": "MED-606",
+      "name": "BIOQUIMICA II",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "8",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-192",
+        "MED-197"
+      ],
+      "coreqs": [
+        "MED-607"
+      ]
+    },
+    {
+      "id": "MED-607",
+      "code": "MED-607",
+      "name": "LABORATORIO DE BIOQUIMICA II",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "8",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-192",
+        "MED-197"
+      ],
+      "coreqs": [
+        "MED-606"
+      ]
+    },
+    {
+      "id": "MED-224",
+      "code": "MED-224",
+      "name": "NEUROANATOMIA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "9",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-212",
+        "MED-214"
+      ],
+      "coreqs": [
+        "MED-225"
+      ]
+    },
+    {
+      "id": "MED-225",
+      "code": "MED-225",
+      "name": "LABORATORIO DE NEUROANATOMIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "9",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-212",
+        "MED-214"
+      ],
+      "coreqs": [
+        "MED-224"
+      ]
+    },
+    {
+      "id": "MED-286",
+      "code": "MED-286",
+      "name": "GENETICA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "9",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-200"
+      ],
+      "coreqs": [
+        "MED-287"
+      ]
+    },
+    {
+      "id": "MED-287",
+      "code": "MED-287",
+      "name": "LAB. DE GENETICA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "9",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-200"
+      ],
+      "coreqs": [
+        "MED-286"
+      ]
+    },
+    {
+      "id": "MED-310",
+      "code": "MED-310",
+      "name": "PATOLOGIA II",
+      "ht": 96,
+      "hp": 0,
+      "th": 96,
+      "credits": 6,
+      "cuatrimestre": "9",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-300",
+        "MED-305"
+      ],
+      "coreqs": [
+        "MED-315"
+      ]
+    },
+    {
+      "id": "MED-315",
+      "code": "MED-315",
+      "name": "LABORATORIO DE PATOLOGIA II",
+      "ht": 0,
+      "hp": 64,
+      "th": 64,
+      "credits": 2,
+      "cuatrimestre": "9",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-300",
+        "MED-305"
+      ],
+      "coreqs": [
+        "MED-310"
+      ]
+    },
+    {
+      "id": "MED-322",
+      "code": "MED-322",
+      "name": "FARMACOLOGIA",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "9",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-606",
+        "MED-607"
+      ],
+      "coreqs": [
+        "MED-325"
+      ]
+    },
+    {
+      "id": "MED-325",
+      "code": "MED-325",
+      "name": "LABORATORIO DE FAMACOLOGIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "9",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-606",
+        "MED-607"
+      ],
+      "coreqs": [
+        "MED-322"
+      ]
+    },
+    {
+      "id": "MED-662",
+      "code": "MED-662",
+      "name": "EPIDEMIOLOGIA",
+      "ht": 48,
+      "hp": 32,
+      "th": 80,
+      "credits": 4,
+      "cuatrimestre": "9",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-160"
+      ]
+    },
+    {
+      "id": "MED-254",
+      "code": "MED-254",
+      "name": "PARASITOLOGIA",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "10",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-272",
+        "MED-274"
+      ],
+      "coreqs": [
+        "MED-255"
+      ]
+    },
+    {
+      "id": "MED-255",
+      "code": "MED-255",
+      "name": "LABORATORIO DE PARASITOLOGIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "10",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-272",
+        "MED-274"
+      ],
+      "coreqs": [
+        "MED-254"
+      ]
+    },
+    {
+      "id": "MED-264",
+      "code": "MED-264",
+      "name": "SEMIOLOGIA CLINICA",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "10",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-310",
+        "MED-315"
+      ],
+      "coreqs": [
+        "MED-267"
+      ]
+    },
+    {
+      "id": "MED-267",
+      "code": "MED-267",
+      "name": "PRACTICA DE SEMIOLOGIA CLINICA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "10",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-310",
+        "MED-315"
+      ],
+      "coreqs": [
+        "MED-264"
+      ]
+    },
+    {
+      "id": "MED-357",
+      "code": "MED-357",
+      "name": "FISIOPATOLOGIA I",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "10",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-292",
+        "MED-310",
+        "MED-315"
+      ]
+    },
+    {
+      "id": "MED-411",
+      "code": "MED-411",
+      "name": "TERAPEUTICA",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "10",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-322"
+      ],
+      "coreqs": [
+        "MED-414"
+      ]
+    },
+    {
+      "id": "MED-414",
+      "code": "MED-414",
+      "name": "PRACTICAS DE TERAPEUTICA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "10",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-322"
+      ],
+      "coreqs": [
+        "MED-411"
+      ]
+    },
+    {
+      "id": "MED-882",
+      "code": "MED-882",
+      "name": "INMUNOLOGIA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "10",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-292",
+        "MED-295"
+      ]
+    },
+    {
+      "id": "MED-987",
+      "code": "MED-987",
+      "name": "MEDICINA PREVENTIVA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "10",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-662"
+      ]
+    },
+    {
+      "id": "MED-342",
+      "code": "MED-342",
+      "name": "MEDICINA FORENSE",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "1",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-310",
+        "MED-315"
+      ]
+    },
+    {
+      "id": "MED-358",
+      "code": "MED-358",
+      "name": "FISIOPATOLOGIA II",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "1",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-357"
+      ]
+    },
+    {
+      "id": "MED-416",
+      "code": "MED-416",
+      "name": "SEMIOLOGIA QUIRURGICA",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "1",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-264",
+        "MED-267"
+      ],
+      "coreqs": [
+        "MED-419"
+      ]
+    },
+    {
+      "id": "MED-419",
+      "code": "MED-419",
+      "name": "PRACTICA DE SEMIOLOGIA QUIRURGICA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "1",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-264",
+        "MED-267"
+      ],
+      "coreqs": [
+        "MED-416"
+      ]
+    },
+    {
+      "id": "MED-450",
+      "code": "MED-450",
+      "name": "NUTRICION",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "1",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-606",
+        "MED-607"
+      ]
+    },
+    {
+      "id": "MED-506",
+      "code": "MED-506",
+      "name": "BIOETICA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "1",
+      "area": "BASICAS",
+      "prereqs": [
+        "MED-286",
+        "MED-287"
+      ]
+    },
+    {
+      "id": "MED-930",
+      "code": "MED-930",
+      "name": "PSICOPATOLOGIA CLINICA",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "1",
+      "area": "BASICAS"
+    },
+    {
+      "id": "MED-941",
+      "code": "MED-941",
+      "name": "ELECTROCARDIOGRAFIA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "1",
+      "area": "BASICAS"
+    },
+    {
+      "id": "MED-943",
+      "code": "MED-943",
+      "name": "BIOSEGURIDAD",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "1",
+      "area": "BASICAS"
+    },
+    {
+      "id": "MED-956",
+      "code": "MED-956",
+      "name": "MANEJO DE DESASTRES",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "1",
+      "area": "BASICAS"
+    },
+    {
+      "id": "MED-984",
+      "code": "MED-984",
+      "name": "REANIMACION CARDIOPULMONAR",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "1",
+      "area": "BASICAS"
+    },
+    {
+      "id": "MED-988",
+      "code": "MED-988",
+      "name": "PSICOLOGIA MEDICA",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "1",
+      "area": "BASICAS"
+    },
+    {
+      "id": "MED-963",
+      "code": "MED-963",
+      "name": "APRENDIZAJES BASADOS EN PROBLEMAS",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "1",
+      "area": "BASICAS"
+    },
+    {
+      "id": "MED-364",
+      "code": "MED-364",
+      "name": "CARDIOLOGIA",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "2",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-365"
+      ]
+    },
+    {
+      "id": "MED-365",
+      "code": "MED-365",
+      "name": "PRACTICA DE CARDIOLOGIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "2",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-364"
+      ]
+    },
+    {
+      "id": "MED-384",
+      "code": "MED-384",
+      "name": "ENDOCRINOLOGIA",
+      "ht": 16,
+      "hp": 0,
+      "th": 16,
+      "credits": 1,
+      "cuatrimestre": "2",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-385"
+      ]
+    },
+    {
+      "id": "MED-385",
+      "code": "MED-385",
+      "name": "PRACTICA DE ENDOCRINOLOGIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "2",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-384"
+      ]
+    },
+    {
+      "id": "MED-393",
+      "code": "MED-393",
+      "name": "HEMATOLOGIA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "2",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-394"
+      ]
+    },
+    {
+      "id": "MED-394",
+      "code": "MED-394",
+      "name": "LAB. DE HEMATOLOGIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "2",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-393"
+      ]
+    },
+    {
+      "id": "MED-444",
+      "code": "MED-444",
+      "name": "NEUROLOGIA",
+      "ht": 16,
+      "hp": 0,
+      "th": 16,
+      "credits": 1,
+      "cuatrimestre": "2",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-445"
+      ]
+    },
+    {
+      "id": "MED-445",
+      "code": "MED-445",
+      "name": "PRACTICA DE NEUROLOGIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "2",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-444"
+      ]
+    },
+    {
+      "id": "MED-473",
+      "code": "MED-473",
+      "name": "REUMATOLOGIA",
+      "ht": 16,
+      "hp": 0,
+      "th": 16,
+      "credits": 1,
+      "cuatrimestre": "2",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-474"
+      ]
+    },
+    {
+      "id": "MED-474",
+      "code": "MED-474",
+      "name": "PRACTICA DE REUMATOLOGIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "2",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-473"
+      ]
+    },
+    {
+      "id": "MED-478",
+      "code": "MED-478",
+      "name": "IMAGENOLOGIA DIAGNOSTICA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "2",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-479"
+      ]
+    },
+    {
+      "id": "MED-479",
+      "code": "MED-479",
+      "name": "PRACTICA DE IMAGENOLOGIA DIAGNOSTICA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "2",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-478"
+      ]
+    },
+    {
+      "id": "MED-503",
+      "code": "MED-503",
+      "name": "CIRUGIA GENERAL I",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "2",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-504"
+      ]
+    },
+    {
+      "id": "MED-504",
+      "code": "MED-504",
+      "name": "PRACTICA DE CIRUGIA GENERAL I",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "2",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-503"
+      ]
+    },
+    {
+      "id": "MED-542",
+      "code": "MED-542",
+      "name": "OFTALMOLOGIA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "2",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-545"
+      ]
+    },
+    {
+      "id": "MED-545",
+      "code": "MED-545",
+      "name": "PRACTICA DE OFTALMOLOGIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "2",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-542"
+      ]
+    },
+    {
+      "id": "MED-894",
+      "code": "MED-894",
+      "name": "NEFROLOGIA",
+      "ht": 16,
+      "hp": 0,
+      "th": 16,
+      "credits": 1,
+      "cuatrimestre": "2",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-895"
+      ]
+    },
+    {
+      "id": "MED-895",
+      "code": "MED-895",
+      "name": "PRACTICA DE NEFROLOGIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "2",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-894"
+      ]
+    },
+    {
+      "id": "MED-924",
+      "code": "MED-924",
+      "name": "INFECTOLOGIA",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "2",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-925"
+      ]
+    },
+    {
+      "id": "MED-925",
+      "code": "MED-925",
+      "name": "PRACTICA DE INFECTOLOGIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "2",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-924"
+      ]
+    },
+    {
+      "id": "MED-244",
+      "code": "MED-244",
+      "name": "PSIQUIATRIA",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "3",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-245"
+      ]
+    },
+    {
+      "id": "MED-245",
+      "code": "MED-245",
+      "name": "PRACTICA DE PSIQUIATRIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "3",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-244"
+      ]
+    },
+    {
+      "id": "MED-404",
+      "code": "MED-404",
+      "name": "DERMATOLOGIA Y VENEROLOGIA",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "3",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-924",
+        "MED-925"
+      ],
+      "coreqs": [
+        "MED-405"
+      ]
+    },
+    {
+      "id": "MED-405",
+      "code": "MED-405",
+      "name": "PRACTICA DE DERMATOLOGIA Y VENEROLOGIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "3",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-924",
+        "MED-925"
+      ],
+      "coreqs": [
+        "MED-404"
+      ]
+    },
+    {
+      "id": "MED-432",
+      "code": "MED-432",
+      "name": "ANESTESIOLOGIA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "3",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-503",
+        "MED-504"
+      ],
+      "coreqs": [
+        "MED-434"
+      ]
+    },
+    {
+      "id": "MED-434",
+      "code": "MED-434",
+      "name": "PRACTICA DE ANESTESIOLOGIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "3",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-503",
+        "MED-504"
+      ],
+      "coreqs": [
+        "MED-432"
+      ]
+    },
+    {
+      "id": "MED-463",
+      "code": "MED-463",
+      "name": "ONCOLOGIA",
+      "ht": 16,
+      "hp": 0,
+      "th": 16,
+      "credits": 1,
+      "cuatrimestre": "3",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-464"
+      ]
+    },
+    {
+      "id": "MED-464",
+      "code": "MED-464",
+      "name": "PRACTICA DE ONCOLOGIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "3",
+      "area": "CLINICAS",
+      "coreqs": [
+        "MED-463"
+      ]
+    },
+    {
+      "id": "MED-484",
+      "code": "MED-484",
+      "name": "NEUMOLOGIA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "3",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-478",
+        "MED-479"
+      ],
+      "coreqs": [
+        "MED-485"
+      ]
+    },
+    {
+      "id": "MED-485",
+      "code": "MED-485",
+      "name": "PRACTICA DE NEUMOLOGIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "3",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-478",
+        "MED-479"
+      ],
+      "coreqs": [
+        "MED-484"
+      ]
+    },
+    {
+      "id": "MED-508",
+      "code": "MED-508",
+      "name": "CIRUGIA GENERAL II",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "3",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-503",
+        "MED-504"
+      ],
+      "coreqs": [
+        "MED-509"
+      ]
+    },
+    {
+      "id": "MED-509",
+      "code": "MED-509",
+      "name": "PRACTICA DE CIRUGIA GENERAL II",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "3",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-503",
+        "MED-504"
+      ],
+      "coreqs": [
+        "MED-508"
+      ]
+    },
+    {
+      "id": "MED-584",
+      "code": "MED-584",
+      "name": "GASTROENTEROLOGIA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "3",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-503",
+        "MED-504"
+      ],
+      "coreqs": [
+        "MED-585"
+      ]
+    },
+    {
+      "id": "MED-585",
+      "code": "MED-585",
+      "name": "PRACTICA DE GASTROENTEROLOGIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "3",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-503",
+        "MED-504"
+      ],
+      "coreqs": [
+        "MED-584"
+      ]
+    },
+    {
+      "id": "ADM-900",
+      "code": "ADM-900",
+      "name": "FORMACION DE EMPRENDEDORES",
+      "ht": 32,
+      "hp": 32,
+      "th": 64,
+      "credits": 3,
+      "cuatrimestre": "4",
+      "area": "CLINICAS"
+    },
+    {
+      "id": "MED-374",
+      "code": "MED-374",
+      "name": "GINECOLOGIA Y OBSTETRICIA",
+      "ht": 128,
+      "hp": 0,
+      "th": 128,
+      "credits": 8,
+      "cuatrimestre": "4",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-508",
+        "MED-509"
+      ],
+      "coreqs": [
+        "MED-375"
+      ]
+    },
+    {
+      "id": "MED-375",
+      "code": "MED-375",
+      "name": "PRACTICA DE GINECOLOGIA Y OBSTETRICIA",
+      "ht": 0,
+      "hp": 64,
+      "th": 64,
+      "credits": 2,
+      "cuatrimestre": "4",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-508",
+        "MED-509"
+      ],
+      "coreqs": [
+        "MED-374"
+      ]
+    },
+    {
+      "id": "MED-493",
+      "code": "MED-493",
+      "name": "CUIDADOS INTENSIVOS Y EMERGENCIA",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "4",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-508",
+        "MED-509"
+      ],
+      "coreqs": [
+        "MED-494"
+      ]
+    },
+    {
+      "id": "MED-494",
+      "code": "MED-494",
+      "name": "PRACTICA DE CUIDADOS INTENSIVOS Y EMERGENCIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "4",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-508",
+        "MED-509"
+      ],
+      "coreqs": [
+        "MED-493"
+      ]
+    },
+    {
+      "id": "MED-512",
+      "code": "MED-512",
+      "name": "CIRUGIA TORACICA Y CARDIOVASCULAR",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "4",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-508",
+        "MED-509"
+      ]
+    },
+    {
+      "id": "MED-524",
+      "code": "MED-524",
+      "name": "ORTOPEDIA Y TRAUMATOLOGIA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "4",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-508",
+        "MED-509"
+      ],
+      "coreqs": [
+        "MED-525"
+      ]
+    },
+    {
+      "id": "MED-525",
+      "code": "MED-525",
+      "name": "PRACTICA DE ORTOPEDIA Y TRAUMATOLOGIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "4",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-508",
+        "MED-509"
+      ],
+      "coreqs": [
+        "MED-524"
+      ]
+    },
+    {
+      "id": "MED-534",
+      "code": "MED-534",
+      "name": "OTORRINOLARINGOLOGIA",
+      "ht": 16,
+      "hp": 0,
+      "th": 16,
+      "credits": 1,
+      "cuatrimestre": "4",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-508",
+        "MED-509"
+      ],
+      "coreqs": [
+        "MED-535"
+      ]
+    },
+    {
+      "id": "MED-535",
+      "code": "MED-535",
+      "name": "PRACTICA DE OTORRINOLARINGOLOGIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "4",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-508",
+        "MED-509"
+      ],
+      "coreqs": [
+        "MED-534"
+      ]
+    },
+    {
+      "id": "MED-552",
+      "code": "MED-552",
+      "name": "NEUROCIRUGIA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "4",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-444",
+        "MED-445"
+      ]
+    },
+    {
+      "id": "MED-614",
+      "code": "MED-614",
+      "name": "UROLOGIA",
+      "ht": 16,
+      "hp": 0,
+      "th": 16,
+      "credits": 1,
+      "cuatrimestre": "4",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-508",
+        "MED-509"
+      ],
+      "coreqs": [
+        "MED-615"
+      ]
+    },
+    {
+      "id": "MED-615",
+      "code": "MED-615",
+      "name": "PRACTICA DE UROLOGIA",
+      "ht": 0,
+      "hp": 32,
+      "th": 32,
+      "credits": 1,
+      "cuatrimestre": "4",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-508",
+        "MED-509"
+      ],
+      "coreqs": [
+        "MED-614"
+      ]
+    },
+    {
+      "id": "DPG-010",
+      "code": "DPG-010",
+      "name": "ANTEPROYECTO DE GRADO",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "5",
+      "area": "CLINICAS",
+      "prereqs": [
+        "ADM-900"
+      ]
+    },
+    {
+      "id": "ESP-301",
+      "code": "ESP-301",
+      "name": "CURSO DE REDACCION",
+      "ht": 64,
+      "hp": 0,
+      "th": 64,
+      "credits": 4,
+      "cuatrimestre": "5",
+      "area": "CLINICAS",
+      "prereqs": [
+        "ESP-189"
+      ]
+    },
+    {
+      "id": "MED-423",
+      "code": "MED-423",
+      "name": "PEDIATRIA Y NEONATOLOGIA",
+      "ht": 128,
+      "hp": 0,
+      "th": 128,
+      "credits": 8,
+      "cuatrimestre": "5",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-374",
+        "MED-375"
+      ],
+      "coreqs": [
+        "MED-424"
+      ]
+    },
+    {
+      "id": "MED-424",
+      "code": "MED-424",
+      "name": "PRACTICA PEDIATRIA Y NEONATOLOGIA",
+      "ht": 0,
+      "hp": 64,
+      "th": 64,
+      "credits": 2,
+      "cuatrimestre": "5",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-374",
+        "MED-375"
+      ],
+      "coreqs": [
+        "MED-423"
+      ]
+    },
+    {
+      "id": "MED-427",
+      "code": "MED-427",
+      "name": "GERIATRIA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "5",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-374",
+        "MED-375"
+      ]
+    },
+    {
+      "id": "MED-435",
+      "code": "MED-435",
+      "name": "MEDICINA FAMILIAR",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "5",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-374",
+        "MED-375"
+      ]
+    },
+    {
+      "id": "MED-622",
+      "code": "MED-622",
+      "name": "MEDICINA FISICA Y REHABILITACION",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "5",
+      "area": "CLINICAS",
+      "prereqs": [
+        "MED-524",
+        "MED-525"
+      ]
+    },
+    {
+      "id": "MED-942",
+      "code": "MED-942",
+      "name": "RESPONSABILIDAD MEDICA",
+      "ht": 32,
+      "hp": 32,
+      "th": 64,
+      "credits": 3,
+      "cuatrimestre": "5",
+      "area": "CLINICAS"
+    },
+    {
+      "id": "MED-944",
+      "code": "MED-944",
+      "name": "TOXICOLOGIA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "5",
+      "area": "CLINICAS"
+    },
+    {
+      "id": "MED-946",
+      "code": "MED-946",
+      "name": "PATOLOGIA FORENSE",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "5",
+      "area": "CLINICAS"
+    },
+    {
+      "id": "MED-949",
+      "code": "MED-949",
+      "name": "AUDITORIA MEDICA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "5",
+      "area": "CLINICAS"
+    },
+    {
+      "id": "MED-953",
+      "code": "MED-953",
+      "name": "MEDICINA DEL DEPORTE",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "5",
+      "area": "CLINICAS"
+    },
+    {
+      "id": "MED-954",
+      "code": "MED-954",
+      "name": "ALERGOLOGIA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "5",
+      "area": "CLINICAS"
+    },
+    {
+      "id": "MED-955",
+      "code": "MED-955",
+      "name": "MEDICINA TROPICAL",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "5",
+      "area": "CLINICAS"
+    },
+    {
+      "id": "MED-958",
+      "code": "MED-958",
+      "name": "TOXICOMANIAS",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "5",
+      "area": "CLINICAS"
+    },
+    {
+      "id": "MED-959",
+      "code": "MED-959",
+      "name": "VIOLENCIA DE GENERO E INTRAFAMILIAR",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "5",
+      "area": "CLINICAS"
+    },
+    {
+      "id": "MED-964",
+      "code": "MED-964",
+      "name": "INVESTIGACION EN SALUD",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "5",
+      "area": "CLINICAS"
+    },
+    {
+      "id": "MED-965",
+      "code": "MED-965",
+      "name": "CIRUGIA PLASTICA",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "5",
+      "area": "CLINICAS"
+    },
+    {
+      "id": "MED-966",
+      "code": "MED-966",
+      "name": "REDACCION DE ENSAYOS EN SALUD",
+      "ht": 32,
+      "hp": 0,
+      "th": 32,
+      "credits": 2,
+      "cuatrimestre": "5",
+      "area": "CLINICAS"
+    },
+    {
+      "id": "MED-967",
+      "code": "MED-967",
+      "name": "HABILIDADES COMUNICATIVAS EN LA RELACION",
+      "ht": 48,
+      "hp": 0,
+      "th": 48,
+      "credits": 3,
+      "cuatrimestre": "5",
+      "area": "CLINICAS"
+    },
+    {
+      "id": "DPG-020",
+      "code": "DPG-020",
+      "name": "PROYECTO DE GRADO",
+      "ht": 96,
+      "hp": 0,
+      "th": 96,
+      "credits": 6,
+      "cuatrimestre": "8",
+      "area": "INTERNADO"
+    }
   ]
 }
