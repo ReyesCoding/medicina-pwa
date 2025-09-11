@@ -51,22 +51,25 @@ button:focus-visible, input:focus-visible, select:focus-visible{
 #planBody .hint{font-size:12px;color:#9aa3cc;margin-left:6px}
 
 /* --- PLAN: layout centrado y sin panel de detalle --- */
-.plan-focus #detail { 
-  display: none !important;       /* oculta panel derecho */
+/* --- PLAN: sin panel de detalle, centro centrado --- */
+
+/* Oculta el CONTENEDOR del panel derecho (no solo su contenido) */
+.plan-focus .panel:has(#detail) {
+  display: none !important;
 }
 
-/* Grid: izquierda fija (admin), centro acotado, derecha elástica vacía */
+/* Grid de 2 columnas: izquierda (admin) + centro (plan) */
 .plan-focus .wrap {
-  grid-template-columns: 280px minmax(0, 920px) 1fr;
+  grid-template-columns: 280px minmax(0, 920px);
 }
 
-/* El panel principal que contiene #plan queda centrado y con ancho máximo */
+/* Centro acotado y centrado */
 .plan-focus .panel:has(#plan) {
   max-width: 920px;
   margin: 0 auto;
 }
 
-/* En móviles: una sola columna y detalle oculto */
+/* Móvil: una sola columna */
 @media (max-width: 980px){
   .plan-focus .wrap { grid-template-columns: 1fr; }
   .plan-focus .panel:has(#plan) { max-width: none; margin: 0; }
