@@ -456,22 +456,21 @@ function injectAdminButton(){
 
     <div class="buttons" style="gap:8px;flex-wrap:wrap">
       <button id="btnPasteSchedules">Pegar horarios (admin)</button>
-      <button id="btnExportDataset">Exportar dataset</button>
-      <button id="btnCopyDataset">Copiar dataset</button>
-      <button id="btnPasteDataset">Pegar dataset</button>
       <button id="btnExportSections">Exportar secciones (repo)</button>
-      <button id="btnRefreshSections">Actualizar datos</button>
+      <button id="btnRefreshSections">Actualizar datos (repo)</button>
     </div>
 
     <div id="adminSecs" class="section"></div>
   `;
   panel.appendChild(box);
 
+  // Llenar combo materias
   const selC = document.getElementById("selCourseAdmin");
   selC.innerHTML = (state.dataset.courses || [])
     .map(c => `<option value="${c.id}">${c.id} — ${c.name}</option>`)
     .join("");
 
+  // Render de secciones + borrar
   function renderAdminSectionsUI(){
     const cid = selC.value;
     const c   = byId(cid);
@@ -493,6 +492,7 @@ function injectAdminButton(){
       <button id="btnClearSecs" class="danger">Vaciar todas</button>
     ` : `<div class="muted">Sin secciones cargadas</div>`;
 
+    // eliminar una
     box.querySelectorAll('[data-act="delSec"]').forEach(btn=>{
       btn.addEventListener("click", ()=>{
         const i = Number(btn.dataset.i);
@@ -505,6 +505,7 @@ function injectAdminButton(){
       });
     });
 
+    // vaciar todas
     const clear = document.getElementById("btnClearSecs");
     if (clear) clear.addEventListener("click", ()=>{
       c.sections = [];
@@ -515,60 +516,33 @@ function injectAdminButton(){
   selC.addEventListener("change", renderAdminSectionsUI);
   renderAdminSectionsUI();
 
+  // ——— Pegar horarios (admin)
   document.getElementById("btnPasteSchedules").onclick = ()=>{
-  const raw = prompt("Pega aquí las secciones (una o varias, con o sin saltos de línea)");
-  if (!raw) return;
-
-  const cid = selC.value;
-  const course = byId(cid);
-  if (!course) { alert("Elige una materia destino."); return; }
-
-  const modeReplace = document.getElementById("modeReplace")?.checked;
-
-  const parsed = window.Schedule.parsePastedSchedules(raw);
-  const secs = Array.isArray(parsed) ? parsed : Object.values(parsed||{}).flat();
-  if (!secs.length) { alert("No se detectaron secciones."); return; }
-
-  const map = new Map();
-  const base = modeReplace ? [] : (course.sections || []);
-  for (const s of base) map.set(keyOfSec(s), s);
-  for (const s of secs) map.set(keyOfSec(s), s);
-  course.sections = [...map.values()];
-
-  saveDataset(); rebuildIndexes(); renderPlan(); renderAdminSectionsUI();
-  alert(`${modeReplace ? "Reemplazadas" : "Agregadas"} ${secs.length} secciones en ${course.id}.`);
-};
-
-  document.getElementById("btnExportDataset").onclick = ()=>{
-    const blob = new Blob([JSON.stringify(state.dataset, null, 2)], {type:"application/json"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "medicine-2013-with-sections.json";
-    a.click();
-    URL.revokeObjectURL(a.href);
-  };
-
-  document.getElementById("btnCopyDataset").onclick = async ()=>{
-    const txt = JSON.stringify(state.dataset, null, 2);
-    try { await navigator.clipboard.writeText(txt); alert("Dataset copiado al portapapeles."); }
-    catch { alert("No se pudo copiar. Selecciona y copia manualmente:\n\n"+txt); }
-  };
-
-  document.getElementById("btnPasteDataset").onclick = ()=>{
-    const raw = prompt("Pega aquí el JSON del dataset (con secciones)");
+    const raw = prompt("Pega aquí las secciones (una o varias, con o sin saltos de línea)");
     if (!raw) return;
-    try {
-      state.dataset = JSON.parse(raw);
-      saveDataset(); rebuildIndexes(); renderList(); renderPlan();
-      selC.innerHTML = (state.dataset.courses || [])
-        .map(c => `<option value="${c.id}">${c.id} — ${c.name}</option>`).join("");
-      renderAdminSectionsUI();
-      alert("Dataset pegado.");
-    } catch {
-      alert("JSON inválido.");
-    }
+
+    const cid = selC.value;
+    const course = byId(cid);
+    if (!course) { alert("Elige una materia destino."); return; }
+
+    const modeReplace = document.getElementById("modeReplace")?.checked;
+
+    const parsed = window.Schedule.parsePastedSchedules(raw);
+    const secs = Array.isArray(parsed) ? parsed : Object.values(parsed||{}).flat();
+    if (!secs.length) { alert("No se detectaron secciones."); return; }
+
+    const keyOfSec = (s)=>`${s.crn||""}|${s.label||""}|${s.room||""}`;
+    const map = new Map();
+    const base = modeReplace ? [] : (course.sections || []);
+    for (const s of base) map.set(keyOfSec(s), s);
+    for (const s of secs) map.set(keyOfSec(s), s);
+    course.sections = [...map.values()];
+
+    saveDataset(); rebuildIndexes(); renderPlan(); renderAdminSectionsUI();
+    alert(`${modeReplace ? "Reemplazadas" : "Agregadas"} ${secs.length} secciones en ${course.id}.`);
   };
 
+  // ——— Exportar SOLO secciones (para subir al repo)
   document.getElementById("btnExportSections").onclick = ()=>{
     const payload = {
       courses: state.dataset.courses
@@ -583,29 +557,26 @@ function injectAdminButton(){
     URL.revokeObjectURL(a.href);
   };
 
- // helper persistente
-function wasSeeded(){ return localStorage.getItem("sections-seeded-v1")==="1"; }
-function markSeeded(){ localStorage.setItem("sections-seeded-v1","1"); }
+  // ——— Importar/Reimportar datos (repo) con semilla/sobrescribir
+  function wasSeeded(){ return localStorage.getItem("sections-seeded-v1")==="1"; }
+  function markSeeded(){ localStorage.setItem("sections-seeded-v1","1"); }
 
-const btnRefresh = document.getElementById("btnRefreshSections");
-if (btnRefresh) {
+  const btnRefresh = document.getElementById("btnRefreshSections");
   const setLabel = () => {
     btnRefresh.textContent = wasSeeded()
-      ? "Reimportar datos (sobrescribe)"
-      : "Importar datos (una vez)";
+      ? "Actualizar datos (repo)"   // mismo texto siempre; si prefieres, cambia al gusto
+      : "Actualizar datos (repo)";
   };
   setLabel();
 
   btnRefresh.onclick = async ()=>{
-    const overwrite = wasSeeded()    // si ya importaste antes → permite sobrescribir
+    const overwrite = wasSeeded()
       ? confirm("¿Sobrescribir secciones existentes con las del repo?")
-      : false;                       // primera vez: no sobrescribe, solo rellena
-
+      : false;
     await reloadSections(Date.now().toString(), { overwrite, notify: true });
     if (!wasSeeded()) markSeeded();
     setLabel();
   };
-}
 }
 
 //——— Utils dataset local/override
