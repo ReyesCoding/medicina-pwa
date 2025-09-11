@@ -601,9 +601,10 @@ async function boot() {
   load();
 
   // 1) Carga base del pensum
-  try {
-    const res = await fetch("./data/medicine-2013.json");
+   try {
+    const res = await fetch(`./data/medicine-2013.json?v=${Date.now()}`, { cache: "no-store" });
     state.dataset = await res.json();
+    console.log("PENSUM cargado:", state.dataset?.courses?.length, "cursos");
   } catch (e) {
     console.error("Dataset no disponible:", e);
     state.dataset = { program: "VACÍO", courses: [] };
