@@ -424,6 +424,9 @@ function showView(id){
   for (const el of ["#graph","#list","#plan"].map($)) el.hidden = true;
   $("#"+id).hidden = false;
 
+  // activa modo Plan (para que el CSS actúe)
+  document.body.classList.toggle("plan-focus", id === "plan");
+
   if (id === "graph") {
     if (!window.App.cy && window.Graph) {
       window.Graph.initGraph();
@@ -432,7 +435,6 @@ function showView(id){
       window.App.cy.resize();
     }
   }
-  document.body.classList.toggle("plan-focus", id==="plan");
 }
 
 //——— Admin UI
