@@ -1,6 +1,17 @@
 // app.js — orquestador
 import { CONFIG } from "./config.js";
 
+// Títulos por cuatrimestre (como en el PDF)
+const CUAT_TITLES = {
+  "1":"PRIMER CUATRIMESTRE","2":"SEGUNDO CUATRIMESTRE","3":"TERCER CUATRIMESTRE",
+  "4":"CUARTO CUATRIMESTRE","5":"QUINTO CUATRIMESTRE","6":"SEXTO CUATRIMESTRE",
+  "7":"SEPTIMO CUATRIMESTRE","8":"OCTAVO CUATRIMESTRE","9":"NOVENO CUATRIMESTRE",
+  "10":"DECIMO CUATRIMESTRE","11":"UNDECIMO CUATRIMESTRE","12":"DUODECIMO CUATRIMESTRE",
+  "13":"DECIMO TERCER CUATRIMESTRE","14":"DECIMO CUARTO CUATRIMESTRE","15":"DECIMO QUINTO CUATRIMESTRE",
+  "16":"DECIMO SEXTO CUATRIMESTRE","17":"DECIMO SEPTIMO CUATRIMESTRE","18":"DECIMO OCTAVO CUATRIMESTRE"
+};
+
+
 const state = {
   dataset: null,
   passed: new Set(),
@@ -82,6 +93,11 @@ function rebuildIndexes(){
   }
 }
 
+// Enlaza UI (antes del render inicial)
+const qEl = $("#q");                // o $("#inpSearch") si usas ese id
+if (qEl) $on(qEl, "input", renderList);
+
+
 // Disponibilidad: todos los prereqs aprobados
 function isAvailable(id) {
   const c = byId(id);
@@ -134,68 +150,82 @@ function setKPIs() {
 
 //——— LISTA
 function renderList(){
-  const list = $("#listBody");
-  const q = ($("#inpSearch")?.value || "").toLowerCase();
-  const filter = $("#selFilter")?.value || "all";
+  const list = document.getElementById("listBody");
+  if (!list) return;
 
-  const all = state.dataset.courses.filter(c=>{
-    const match = c.id.toLowerCase().includes(q) || c.name.toLowerCase().includes(q);
-    if (!match) return false;
-    if (filter === "passed")    return isPassed(c.id);
-    if (filter === "available") return !isPassed(c.id) && isAvailable(c.id);
-    if (filter === "blocked")   return !isPassed(c.id) && !isAvailable(c.id);
-    return true;
+  const q = (document.getElementById("q")?.value || "").trim().toUpperCase();
+
+  // orden: cuatrimestre (num) luego nombre
+  const items = (state.dataset.courses || []).slice().sort((a,b)=>{
+    const ca = Number(a.cuatrimestre || 99), cb = Number(b.cuatrimestre || 99);
+    if (ca !== cb) return ca - cb;
+    return String(a.name).localeCompare(String(b.name));
   });
 
-  const keyOf = c => (c.term ?? c.cuatrimestre ?? c.block ?? "OTROS");
-  const groups = {};
-  for (const c of all) (groups[keyOf(c)] ??= []).push(c);
+  let html = "";
+  let currentCuat = "__NONE__";
 
-  const row = (c)=> {
-    const status = isPassed(c.id) ? "Aprobada" : (isAvailable(c.id) ? "Disponible" : "Bloqueada");
-    return `
-      <div class="list-item" data-id="${c.id}">
+  for (const c of items){
+    // filtro por búsqueda
+    if (q && !(`${c.id} ${c.name}`.toUpperCase().includes(q))) continue;
+
+    const cuat = String(c.cuatrimestre || "");
+    if (cuat !== currentCuat){
+      currentCuat = cuat;
+      const title = CUAT_TITLES[cuat] || (cuat ? `CUATRIMESTRE ${cuat}` : (c.area || "SIN CUATRIMESTRE"));
+      html += `<div class="section">${title}</div>`;
+    }
+
+    const passed = isPassed(c.id);
+    const avail  = isAvailable(c.id);
+    const statusClass = passed ? "passed" : (avail ? "available" : "blocked");
+
+    html += `
+      <div class="list-item ${statusClass}" data-id="${c.id}">
         <div>
-          <div><b>${c.id}</b> — ${c.name}</div>
-          <div class="muted">${c.block || "—"} · ${c.credits} cr · <span class="pill">${status}</span></div>
+          <b>${c.id}</b> — ${c.name}
+          <span class="pill">${c.credits ?? "—"} cr</span>
+          ${c.ht!=null && c.hp!=null ? `<span class="pill">HT ${c.ht} · HP ${c.hp}</span>` : ""}
         </div>
-        <div>
-          ${isPassed(c.id)
-            ? `<button data-act="unpass" class="btn-unpass">Desaprobar</button>`
-            : `<button data-act="pass" class="btn-pass">Marcar aprobada</button>`}
+        <div class="buttons">
+          ${
+            passed
+              ? `<button class="btn-unpass">Desaprobar</button>`
+              : (avail
+                  ? `<button class="btn-pass">Marcar aprobada</button>`
+                  : `<button class="btn-pass" disabled title="Completa los prerrequisitos">Marcar aprobada</button>`)
+          }
+          <button class="ghost btn-detail">Detalle</button>
         </div>
-      </div>
-    `;
-  };
+      </div>`;
+  }
 
-  list.innerHTML = Object.entries(groups).map(([g, arr]) => `
-    <h3 class="section">${g}</h3>
-    ${arr.map(row).join("")}
-  `).join("");
+  list.innerHTML = html || `<div class="muted">Sin resultados.</div>`;
 
-  list.querySelectorAll(".list-item").forEach(rowEl=>{
-    rowEl.addEventListener("click", e=>{
-      const id = rowEl.getAttribute("data-id");
-      if (e.target.closest("button")) return;
+  // eventos
+  list.querySelectorAll(".btn-detail").forEach(b=>{
+    b.addEventListener("click", e=>{
+      const id = e.target.closest(".list-item").getAttribute("data-id");
       renderDetail(id);
     });
   });
-  list.querySelectorAll(".btn-pass").forEach(b=>b.addEventListener("click", e=>{
-    const id = e.target.closest(".list-item").getAttribute("data-id");
-    if (CONFIG.GPA?.REQUIRE_GRADE_ON_PASS && !state.grades[id]) {
-      renderDetail(id);
-      setTimeout(()=> document.getElementById("inpGrade")?.focus(), 0);
-      return;
-    }
-    setPassed(id, true);
-  }));
-  list.querySelectorAll(".btn-unpass").forEach(b=>b.addEventListener("click", e=>{
-    const id = e.target.closest(".list-item").getAttribute("data-id");
-    setPassed(id, false);
-  }));
-
-  $("#inpSearch").oninput = renderList;
-  $("#selFilter").onchange = renderList;
+  list.querySelectorAll(".btn-pass").forEach(b=>{
+    b.addEventListener("click", e=>{
+      const id = e.target.closest(".list-item").getAttribute("data-id");
+      if (CONFIG.GPA?.REQUIRE_GRADE_ON_PASS && !state.grades[id]) {
+        renderDetail(id);
+        setTimeout(()=> document.getElementById("inpGrade")?.focus(), 0);
+        return;
+      }
+      setPassed(id, true);
+    });
+  });
+  list.querySelectorAll(".btn-unpass").forEach(b=>{
+    b.addEventListener("click", e=>{
+      const id = e.target.closest(".list-item").getAttribute("data-id");
+      setPassed(id, false);
+    });
+  });
 }
 
 //——— DETALLE
@@ -598,7 +628,7 @@ state.selectedSections = {}; // { courseId: sectionObj }
 
 //——— Boot
 async function boot() {
-  load();
+  load(); 
 
   // 1) Carga base del pensum
    try {
@@ -681,6 +711,7 @@ async function boot() {
   if (window.Graph && document.getElementById("graph")) {
     // window.Graph.initGraph();
   }
+  
 }
 
 boot();

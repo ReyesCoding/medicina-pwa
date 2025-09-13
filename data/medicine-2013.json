@@ -2483,7 +2483,7 @@
       "hp": 0,
       "th": 32,
       "credits": 2,
-      "cuatrimestre": "5",
+      "cuatrimestre": "1  5",
       "area": "CLINICAS"
     },
     {
@@ -2494,7 +2494,7 @@
       "hp": 0,
       "th": 32,
       "credits": 2,
-      "cuatrimestre": "5",
+      "cuatrimestre": "15",
       "area": "CLINICAS"
     },
     {
@@ -2505,7 +2505,7 @@
       "hp": 0,
       "th": 32,
       "credits": 2,
-      "cuatrimestre": "5",
+      "cuatrimestre": "15",
       "area": "CLINICAS"
     },
     {
@@ -2516,9 +2516,16 @@
       "hp": 0,
       "th": 48,
       "credits": 3,
-      "cuatrimestre": "5",
+      "cuatrimestre": "15",
       "area": "CLINICAS"
     },
+     { "id":"MED-015","name":"CLINICA PSIQUIATRICA","credits":10,"weeks":6,"cuatrimestre":"16","area":"INTERNADO","ht":0,"hp":0,"th":0 },
+    { "id":"MED-962","name":"CIRUGIA GENERAL","credits":10,"weeks":10,"cuatrimestre":"16","area":"INTERNADO","ht":0,"hp":0,"th":0 },
+    { "id":"MED-016","name":"MEDICINA COMUNITARIA","credits":10,"weeks":8,"cuatrimestre":"17","area":"INTERNADO","ht":0,"hp":0,"th":0 },
+    { "id":"MED-952","name":"MEDICINA INTERNA","credits":10,"weeks":12,"cuatrimestre":"17","area":"INTERNADO","ht":0,"hp":0,"th":0 },
+    { "id":"MED-973","name":"GINECOLOGIA Y OBSTETRICIA","credits":10,"weeks":8,"cuatrimestre":"18","area":"INTERNADO","ht":0,"hp":0,"th":0 },
+    { "id":"MED-982","name":"PEDIATRIA","credits":10,"weeks":8,"cuatrimestre":"18","area":"INTERNADO","ht":0,"hp":0,"th":0 }
+  ,
     {
       "id": "DPG-020",
       "code": "DPG-020",
@@ -2527,7 +2534,7 @@
       "hp": 0,
       "th": 96,
       "credits": 6,
-      "cuatrimestre": "8",
+      "cuatrimestre": "19",
       "area": "INTERNADO"
     }
   ]
