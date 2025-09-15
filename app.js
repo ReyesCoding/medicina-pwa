@@ -148,6 +148,11 @@ function setKPIs() {
   $("#kpiGPA").textContent = (g==null) ? "—" : g.toFixed(2);
 }
 
+function groupFrom(course){
+  const area = String(course.area || "").toUpperCase();
+  return course.elective_group || (CONFIG.ELECTIVE_FALLBACK_BY_AREA?.[area] || null);
+}
+
 //——— LISTA
 function renderList() {
   const q = ($("#inpSearch")?.value || "").trim().toLowerCase();
@@ -197,7 +202,8 @@ function renderList() {
         const item = document.createElement("div");
         item.className = "list-item";
         item.setAttribute("data-id", c.id);
-        const tagElect = c.is_elective ? `<span class="tag tag-elec">${CONFIG.ELECTIVE_TITLES?.[c.elective_group] || "Electiva"}</span>` : "";
+        const eg = course.is_elective ? groupFrom(course) : null;
+        const tagElect = eg ? `<span class="tag tag-elec">${CONFIG.ELECTIVE_TITLES[eg] || "Electiva"}</span>` : "";
         const status = isPassed(c.id) ? "Aprobada" : (isAvailable(c.id) ? "Disponible" : "Bloqueada");
 
         item.innerHTML = `
@@ -223,11 +229,11 @@ function renderList() {
     // Electivas (si hay)
     if (electivas.length) {
       // título según group (si todos comparten uno, muéstralo; si hay mezcla, muestra uno genérico)
-      const groups = new Set(electivas.map(e=>e.elective_group||""));
+     const groups = new Set(electivas.map(e => groupFrom(e) || "NONE"));
       let title = "Electivas";
-      if (groups.size === 1) {
+      if (groups.size === 1 && !groups.has("NONE")) {
         const gid = [...groups][0];
-        title = CONFIG.ELECTIVE_TITLES?.[gid] || title;
+        title = CONFIG.ELECTIVE_TITLES[gid] || title;
       }
       paintBlock(electivas, title);
     }
@@ -666,10 +672,10 @@ state.selectedSections = {}; // { courseId: sectionObj }
 
 //——— Boot
 async function boot() {
-  load(); 
+  load();
 
-  // 1) Carga base del pensum
-   try {
+  // 1) Carga pensum (network-first)
+  try {
     const res = await fetch(`./data/medicine-2013.json?v=${Date.now()}`, { cache: "no-store" });
     state.dataset = await res.json();
     console.log("PENSUM cargado:", state.dataset?.courses?.length, "cursos");
@@ -678,52 +684,47 @@ async function boot() {
     state.dataset = { program: "VACÍO", courses: [] };
   }
 
-  // 2) Overrides locales del admin (si pegaste dataset en este dispositivo)
+  // 2) Overrides locales (admin)
   if (typeof loadDatasetOverride === "function") loadDatasetOverride();
 
-  // 3) Índices mínimos + primer render (por si falla red)
-  rebuildIndexes();
-  renderList(); renderPlan();
-
-  // 4) Mezcla secciones públicas del repo (silencioso en boot; re-renderiza)
+  // 3) Mezcla secciones públicas del repo (silencioso)
   await reloadSections("", { overwrite: true, notify: false });
 
-// 4) Fallback de elective_group tras tener dataset final
-for (const c of state.dataset.courses) {
-  if (c.is_elective && !c.elective_group) {
-    const g = CONFIG.ELECTIVE_FALLBACK_BY_AREA?.[String(c.area || "").toUpperCase()];
-    if (g) c.elective_group = g;
+  // 4) Fallback de elective_group tras tener dataset final
+  for (const c of state.dataset.courses) {
+    if (c.is_elective && !c.elective_group) {
+      const g = CONFIG.ELECTIVE_FALLBACK_BY_AREA?.[String(c.area || "").toUpperCase()];
+      if (g) c.elective_group = g;
+    }
   }
-}
 
-// 5) Índices y primer render con datos ya mezclados
-rebuildIndexes();
-renderList();
-renderPlan();
+  // 5) Índices y primer render (ya definitivo)
+  rebuildIndexes();
+  renderList();
+  renderPlan();
+  setKPIs();
+  showView("list");
 
-// 6) Panel admin y enlaces UI
-injectAdminButton?.();
-$("#inpMaxCredits").value = state.maxCredits;
+  // 6) Panel admin y enlaces UI
+  injectAdminButton?.();
+  $("#inpMaxCredits").value = state.maxCredits;
   $on($("#inpMaxCredits"), "change", e=>{
     state.maxCredits = Math.max(8, Math.min(30, Number(e.target.value)||CONFIG.DEFAULT_MAX_CREDITS));
     save(); renderPlan();
   });
 
-  // Fijamos escala numérica y ocultamos el selector
+  // Escala fija numérica (oculta selector)
   state.scaleMode = "numeric";
   const sel = document.getElementById("selScale");
   if (sel) {
     sel.value = "numeric";
     sel.disabled = true;
-    const lbl = sel.closest("label");
-    if (lbl) lbl.style.display = "none";
+    const lbl = sel.closest("label"); if (lbl) lbl.style.display = "none";
   }
 
-  // Oculta importar & Exportar aprobadas (.csv)
-  const btnImp = $("#btnImportProgress");
-  const fileImp = $("#fileProgress");
-  if (btnImp) btnImp.style.display = "none";
-  if (fileImp) fileImp.remove();
+  // Oculta importar y ajusta exportación CSV
+  const btnImp = $("#btnImportProgress"); if (btnImp) btnImp.style.display = "none";
+  const fileImp = $("#fileProgress");     if (fileImp) fileImp.remove();
   const btnExp = $("#btnExportProgress");
   if (btnExp) {
     btnExp.textContent = "Exportar aprobadas (.csv)";
@@ -742,25 +743,20 @@ $("#inpMaxCredits").value = state.maxCredits;
   }
 
   // Navegación
-  $on($("#btnViewGraph"), "click", ()=>showView("graph"));
-  $on($("#btnViewList"),  "click", ()=>showView("list"));
-  $on($("#btnViewPlan"),  "click", ()=>showView("plan"));
+  $on($("#btnViewGraph"), () => showView("graph"));
+  $on($("#btnViewList"),  () => showView("list"));
+  $on($("#btnViewPlan"),  () => showView("plan"));
 
-  // KPIs + vista inicial
-  setKPIs();
-  showView("list");
-
-  // Registro del Service Worker (raíz)
+  // SW (raíz)
   if ((location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")
       && "serviceWorker" in navigator) {
     try { await navigator.serviceWorker.register("./sw.js"); } catch {}
   }
 
-  // Grafo (on-demand)
+  // Grafo on-demand (si lo habilitas)
   if (window.Graph && document.getElementById("graph")) {
     // window.Graph.initGraph();
   }
-  
 }
 
 boot();
