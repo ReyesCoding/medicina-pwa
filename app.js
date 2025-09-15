@@ -202,7 +202,7 @@ function renderList() {
         const item = document.createElement("div");
         item.className = "list-item";
         item.setAttribute("data-id", c.id);
-        const eg = course.is_elective ? groupFrom(course) : null;
+        const eg = c.is_elective ? groupFrom(c) : null;
         const tagElect = eg ? `<span class="tag tag-elec">${CONFIG.ELECTIVE_TITLES[eg] || "Electiva"}</span>` : "";
         const status = isPassed(c.id) ? "Aprobada" : (isAvailable(c.id) ? "Disponible" : "Bloqueada");
 
