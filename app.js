@@ -149,81 +149,119 @@ function setKPIs() {
 }
 
 //——— LISTA
-function renderList(){
-  const list = document.getElementById("listBody");
-  if (!list) return;
+function renderList() {
+  const q = ($("#inpSearch")?.value || "").trim().toLowerCase();
+  const f = $("#selFilter")?.value || "all";
 
-  const q = (document.getElementById("q")?.value || "").trim().toUpperCase();
-
-  // orden: cuatrimestre (num) luego nombre
-  const items = (state.dataset.courses || []).slice().sort((a,b)=>{
-    const ca = Number(a.cuatrimestre || 99), cb = Number(b.cuatrimestre || 99);
-    if (ca !== cb) return ca - cb;
-    return String(a.name).localeCompare(String(b.name));
-  });
-
-  let html = "";
-  let currentCuat = "__NONE__";
-
-  for (const c of items){
-    // filtro por búsqueda
-    if (q && !(`${c.id} ${c.name}`.toUpperCase().includes(q))) continue;
-
-    const cuat = String(c.cuatrimestre || "");
-    if (cuat !== currentCuat){
-      currentCuat = cuat;
-      const title = CUAT_TITLES[cuat] || (cuat ? `CUATRIMESTRE ${cuat}` : (c.area || "SIN CUATRIMESTRE"));
-      html += `<div class="section">${title}</div>`;
-    }
-
-    const passed = isPassed(c.id);
-    const avail  = isAvailable(c.id);
-    const statusClass = passed ? "passed" : (avail ? "available" : "blocked");
-
-    html += `
-      <div class="list-item ${statusClass}" data-id="${c.id}">
-        <div>
-          <b>${c.id}</b> — ${c.name}
-          <span class="pill">${c.credits ?? "—"} cr</span>
-          ${c.ht!=null && c.hp!=null ? `<span class="pill">HT ${c.ht} · HP ${c.hp}</span>` : ""}
-        </div>
-        <div class="buttons">
-          ${
-            passed
-              ? `<button class="btn-unpass">Desaprobar</button>`
-              : (avail
-                  ? `<button class="btn-pass">Marcar aprobada</button>`
-                  : `<button class="btn-pass" disabled title="Completa los prerrequisitos">Marcar aprobada</button>`)
-          }
-          <button class="ghost btn-detail">Detalle</button>
-        </div>
-      </div>`;
+  const byCuatr = new Map();
+  for (const c of state.dataset.courses) {
+    if (!byCuatr.has(c.cuatrimestre)) byCuatr.set(c.cuatrimestre, []);
+    byCuatr.get(c.cuatrimestre).push(c);
   }
 
-  list.innerHTML = html || `<div class="muted">Sin resultados.</div>`;
+  const cuats = [...byCuatr.keys()].sort((a,b)=>Number(a)-Number(b));
+  const list = $("#listBody");
+  list.innerHTML = "";
 
-  // eventos
-  list.querySelectorAll(".btn-detail").forEach(b=>{
-    b.addEventListener("click", e=>{
-      const id = e.target.closest(".list-item").getAttribute("data-id");
-      renderDetail(id);
-    });
-  });
-  list.querySelectorAll(".btn-pass").forEach(b=>{
-    b.addEventListener("click", e=>{
-      const id = e.target.closest(".list-item").getAttribute("data-id");
-      if (CONFIG.GPA?.REQUIRE_GRADE_ON_PASS && !state.grades[id]) {
-        renderDetail(id);
-        setTimeout(()=> document.getElementById("inpGrade")?.focus(), 0);
-        return;
+  for (const cuat of cuats) {
+    const cursos = byCuatr.get(cuat);
+    const required = cursos.filter(c=>!c.is_elective);
+    const electivas = cursos.filter(c=>c.is_elective);
+
+    // Header del cuatrimestre
+    const h = document.createElement("div");
+    h.className = "cuat-head";
+    const cuatNum = Number(cuat);
+    const titulo = `${cuatNum===19 ? "PROYECTO" : (["","PRIMER","SEGUNDO","TERCER","CUARTO","QUINTO","SEXTO","SÉPTIMO","OCTAVO","NOVENO","DÉCIMO","UNDÉCIMO","DUODÉCIMO","DÉCIMO TERCER","DÉCIMO CUARTO","DÉCIMO QUINTO","DÉCIMO SEXTO","DÉCIMO SÉPTIMO","DÉCIMO OCTAVO","DÉCIMO NOVENO"][cuatNum] || cuat)} CUATRIMESTRE`;
+    h.innerHTML = `<div class="cuat-title">${titulo}</div>`;
+    list.appendChild(h);
+
+    // pinta un bloque (lista) con items filtrados por búsqueda/filtro
+    const paintBlock = (arr, blockTitle=null) => {
+      const ul = document.createElement("div");
+      ul.className = "list-block";
+      if (blockTitle) {
+        const sub = document.createElement("div");
+        sub.className = "subhead";
+        sub.textContent = blockTitle;
+        ul.appendChild(sub);
       }
-      setPassed(id, true);
-    });
-  });
-  list.querySelectorAll(".btn-unpass").forEach(b=>{
-    b.addEventListener("click", e=>{
-      const id = e.target.closest(".list-item").getAttribute("data-id");
-      setPassed(id, false);
+      for (const c of arr) {
+        if (q && !(c.name.toLowerCase().includes(q) || String(c.id).toLowerCase().includes(q))) continue;
+        if (f !== "all") {
+          if (f === "passed" && !state.passed.has(c.id)) continue;
+          if (f === "available" && !isAvailable(c.id)) continue;
+          if (f === "blocked" && isAvailable(c.id)) continue;
+        }
+
+        const item = document.createElement("div");
+        item.className = "list-item";
+        item.setAttribute("data-id", c.id);
+        const tagElect = c.is_elective ? `<span class="tag tag-elec">${CONFIG.ELECTIVE_TITLES?.[c.elective_group] || "Electiva"}</span>` : "";
+        const status = isPassed(c.id) ? "Aprobada" : (isAvailable(c.id) ? "Disponible" : "Bloqueada");
+
+        item.innerHTML = `
+          <div class="li-left">
+            <div><b>${c.id}</b> — ${c.name} ${tagElect}</div>
+            <div class="muted">${(c.block||c.area||"").toString()} · ${c.credits} cr · HT ${c.ht??"—"} · HP ${c.hp??"—"}</div>
+          </div>
+          <div class="li-right">
+            <span class="pill">${status}</span>
+            ${isPassed(c.id) ? 
+              `<button class="btn-unpass">Desaprobar</button>` :
+              `<button class="btn-pass"${isAvailable(c.id) ? "" : " disabled title='Completa los prerrequisitos'"}>Marcar aprobada</button>`}
+          </div>
+        `;
+        ul.appendChild(item);
+      }
+      list.appendChild(ul);
+    };
+
+    // Requeridas
+    paintBlock(required);
+
+    // Electivas (si hay)
+    if (electivas.length) {
+      // título según group (si todos comparten uno, muéstralo; si hay mezcla, muestra uno genérico)
+      const groups = new Set(electivas.map(e=>e.elective_group||""));
+      let title = "Electivas";
+      if (groups.size === 1) {
+        const gid = [...groups][0];
+        title = CONFIG.ELECTIVE_TITLES?.[gid] || title;
+      }
+      paintBlock(electivas, title);
+    }
+
+    // Checkpoint (si aplica)
+    const cp = CONFIG.CHECKPOINTS?.[String(cuat)];
+    if (cp) {
+      const div = document.createElement("div");
+      div.className = "checkpoint";
+      div.innerHTML = `<div class="cp-title">🛡️ ${cp.title}</div><div class="cp-note">${cp.note}</div>`;
+      list.appendChild(div);
+    }
+  }
+
+  // Re-engancha handlers para aprobar desde lista (tu lógica actual)
+  list.querySelectorAll(".btn-pass").forEach(b=>b.addEventListener("click", e=>{
+    const id = e.target.closest(".list-item").getAttribute("data-id");
+    if (CONFIG.GPA?.REQUIRE_GRADE_ON_PASS && !state.grades[id]) {
+      renderDetail(id);
+      setTimeout(()=> document.getElementById("inpGrade")?.focus(), 0);
+      return;
+    }
+    setPassed(id, true);
+  }));
+  list.querySelectorAll(".btn-unpass").forEach(b=>b.addEventListener("click", e=>{
+    const id = e.target.closest(".list-item").getAttribute("data-id");
+    setPassed(id, false);
+  }));
+
+  // click en item para ver detalle
+  list.querySelectorAll(".list-item .li-left").forEach(el=>{
+    el.addEventListener("click", e=>{
+      const id = e.currentTarget.closest(".list-item").getAttribute("data-id");
+      renderDetail(id);
     });
   });
 }
@@ -650,11 +688,22 @@ async function boot() {
   // 4) Mezcla secciones públicas del repo (silencioso en boot; re-renderiza)
   await reloadSections("", { overwrite: true, notify: false });
 
-  // 5) Inyecta el panel Admin (ya hay dataset e índices)
-  injectAdminButton?.();
+// 4) Fallback de elective_group tras tener dataset final
+for (const c of state.dataset.courses) {
+  if (c.is_elective && !c.elective_group) {
+    const g = CONFIG.ELECTIVE_FALLBACK_BY_AREA?.[String(c.area || "").toUpperCase()];
+    if (g) c.elective_group = g;
+  }
+}
 
-  // 6) Enlaces UI base
-  $("#inpMaxCredits").value = state.maxCredits;
+// 5) Índices y primer render con datos ya mezclados
+rebuildIndexes();
+renderList();
+renderPlan();
+
+// 6) Panel admin y enlaces UI
+injectAdminButton?.();
+$("#inpMaxCredits").value = state.maxCredits;
   $on($("#inpMaxCredits"), "change", e=>{
     state.maxCredits = Math.max(8, Math.min(30, Number(e.target.value)||CONFIG.DEFAULT_MAX_CREDITS));
     save(); renderPlan();

@@ -22,5 +22,30 @@ export const CONFIG = {
       { min: 60, gpa: 2.0 },
       { min: 0,  gpa: 0.0 }
     ]
+  },
+  
+ ELECTIVE_TITLES: {
+    GEN: "Electivas Generales",
+    BASICAS: "Electivas Profesionalizantes de Ciencias Básicas",
+    CLINICAS: "Electivas Profesionalizantes de Ciencias Clínicas y Quirúrgicas"
+  },
+  ELECTIVE_FALLBACK_BY_AREA: { // por si el JSON aún no trae el grupo
+    PREMEDICA: "GEN",
+    BASICAS: "BASICAS",
+    CLINICAS: "CLINICAS"
+  },
+  CHECKPOINTS: {
+    "6": {
+      title: "Paso a Ciencias Básicas",
+      note: "Pre–requisitos: Haber aprobado el bloque de PreMédica y un Índice Académico mínimo acumulado de 2.5."
+    },
+    "11": {
+      title: "Paso a Clínicas",
+      note: "Pre–requisitos: Haber aprobado el bloque de Ciencias Básicas."
+    },
+    "15": {
+      title: "Antes de Internado",
+      note: "Revisa que cumplas todos los requisitos previos al Internado Rotatorio."
+    }
   }
 };
