@@ -209,6 +209,8 @@ function groupFrom(course){
   return course.elective_group || (CONFIG.ELECTIVE_FALLBACK_BY_AREA?.[area] || null);
 }
 
+window.groupFrom = groupFrom; // para usarlo en la consola
+
 //——— LISTA
 function renderList() {
   const q = ($("#inpSearch")?.value || "").trim().toLowerCase();
@@ -512,9 +514,9 @@ function normalizeSectionSlots(sec) {
   if (!Array.isArray(sec.slots)) return;
   for (const s of sec.slots) {
     if (typeof s.start === "number" && typeof s.end === "number" && s.end < s.start) {
-      const t = s.start; s.start = s.end; s.end = t; // invierte si vienen al revés
+      const t = s.start; s.start = s.end; s.end = t; // invierte si venían al revés
     }
-    if (s.day === "X") s.day = "MI"; // alias por si aparece
+    if (s.day === "X") s.day = "MI"; // alias común
   }
 }
 
@@ -534,19 +536,17 @@ function mergeSections(dataset, sectionsDoc, { overwrite = false } = {}) {
     if (!target) continue;
 
     const incoming = Array.isArray(entry.sections) ? entry.sections : [];
-    // normaliza los slots entrantes
-    for (const s of incoming) normalizeSectionSlots(s);
+for (const s of incoming) normalizeSectionSlots(s);
 
-    if (overwrite || !Array.isArray(target.sections) || target.sections.length === 0) {
-      target.sections = incoming;
-    } else {
-      const base = target.sections || [];
-      for (const s of base) normalizeSectionSlots(s);
+if (overwrite || !Array.isArray(target.sections) || target.sections.length === 0) {
+  target.sections = incoming;
+} else {
+  const base = target.sections || [];
+  for (const s of base) normalizeSectionSlots(s);
 
-      // mezcla sin duplicados (por crn|label|room)
-      const map = new Map(base.map(s => [keyOfSec(s), s]));
-      for (const s of incoming) map.set(keyOfSec(s), s);
-      target.sections = [...map.values()];
+  const map = new Map(base.map(s => [keyOfSec(s), s]));
+  for (const s of incoming) map.set(keyOfSec(s), s);
+  target.sections = [...map.values()];
     }
   }
 }
@@ -816,9 +816,10 @@ async function boot() {
   }
 
   // Navegación
-  $on($("#btnViewGraph"), () => showView("graph"));
-  $on($("#btnViewList"),  () => showView("list"));
-  $on($("#btnViewPlan"),  () => showView("plan"));
+$on($("#btnViewGraph"), "click", () => showView("graph"));
+$on($("#btnViewList"),  "click", () => showView("list"));
+$on($("#btnViewPlan"),  "click", () => showView("plan"));
+
 
   // SW (raíz)
   if ((location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")
