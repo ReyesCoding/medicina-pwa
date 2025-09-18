@@ -1,5 +1,5 @@
 // pwa/sw.js
-const CACHE = "medicina-static-v25";
+const CACHE = "medicina-static-v26";
 
 // ✅ Archivos estáticos a precache (no incluir sections.json)
 const PRECACHE_URLS = [

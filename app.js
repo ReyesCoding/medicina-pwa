@@ -24,6 +24,54 @@ const state = {
 // 👇 Añádelo arriba, tras 'state' y antes de 'const App = {...}'
 function isPassed(id){ return state.passed.has(id); }
 
+// —— Reglas por bloque (área → bloque) y GPA
+const AREA_TO_BLOCK = { PREMEDICA: "PREMED", BASICAS: "BASICAS", CLINICAS: "CLINICAS", INTERNADO: "INTERNADO" };
+
+function blockKeyOf(course) {
+  const area = String(course.area || "").toUpperCase();
+  return AREA_TO_BLOCK[area] || null;
+}
+
+function coursesInBlock(blockKey) {
+  const area = Object.entries(AREA_TO_BLOCK).find(([a, k]) => k === blockKey)?.[0] || null;
+  if (!area) return [];
+  return (state.dataset?.courses || []).filter(c => String(c.area || "").toUpperCase() === area);
+}
+
+function isBlockCompleted(blockKey) {
+  const list = coursesInBlock(blockKey);
+  // todas las obligatorias del bloque aprobadas
+  const required = list.filter(c => !c.is_elective);
+  if (!required.every(c => state.passed.has(c.id))) return false;
+
+  // créditos de electivas mínimos del bloque (si aplica)
+  const need = CONFIG.ELECTIVES_MIN?.[blockKey] ?? 0;
+  if (need > 0) {
+    const electCr = list
+      .filter(c => c.is_elective && state.passed.has(c.id))
+      .reduce((a, c) => a + (c.credits || 0), 0);
+    if (electCr < need) return false;
+  }
+  return true;
+}
+
+function allowedByBlockRules(course) {
+  const bk = blockKeyOf(course);
+  if (!bk) return true;
+  if (bk === "PREMED") return true; // arranque
+
+  if (bk === "BASICAS") {
+    if (!isBlockCompleted("PREMED")) return false;
+    const overallGPA = window.GPA?.calc(state.dataset.courses, state.grades, state.scaleMode);
+    const min = CONFIG.GPA_MIN_PREMED_TO_BASICAS;
+    if (min != null && (overallGPA ?? 0) < min) return false;
+    return true;
+  }
+  if (bk === "CLINICAS")  return isBlockCompleted("BASICAS");
+  if (bk === "INTERNADO") return isBlockCompleted("CLINICAS");
+  return true;
+}
+
 const App = {
   config: CONFIG,
   state,
@@ -94,18 +142,26 @@ function rebuildIndexes(){
 }
 
 // Enlaza UI (antes del render inicial)
-const qEl = $("#q");                // o $("#inpSearch") si usas ese id
+const qEl = $("#inpSearch");            // o $("#inpSearch") si usas ese id
 if (qEl) $on(qEl, "input", renderList);
 
 
-// Disponibilidad: todos los prereqs aprobados
+
+// Disponibilidad: reglas de bloque + todos los prerrequisitos aprobados
 function isAvailable(id) {
   const c = byId(id);
   if (!c) return false;
-  const prs = (c.prereqs || []);
-  for (const p of prs) if (!state.passed.has(p)) return false;
+
+  // puertas de bloque (PREMED → BASICAS → CLINICAS → INTERNADO) + GPA 2.5
+  if (!allowedByBlockRules(c)) return false;
+
+  // prerrequisitos directos
+  for (const p of (c.prereqs || [])) {
+    if (!state.passed.has(p)) return false;
+  }
   return true;
 }
+
 
 function setPassed(id, v) {
   if (v && CONFIG.GPA?.REQUIRE_GRADE_ON_PASS) {
@@ -450,6 +506,18 @@ function normalizeCourseName(s){
     .trim();
 }
 
+//function keyOfSec(s){ return `${s.crn||""}|${s.label||""}|${s.room||""}`; }
+
+function normalizeSectionSlots(sec) {
+  if (!Array.isArray(sec.slots)) return;
+  for (const s of sec.slots) {
+    if (typeof s.start === "number" && typeof s.end === "number" && s.end < s.start) {
+      const t = s.start; s.start = s.end; s.end = t; // invierte si vienen al revés
+    }
+    if (s.day === "X") s.day = "MI"; // alias por si aparece
+  }
+}
+
 function keyOfSec(s){ return `${s.crn||""}|${s.label||""}|${s.room||""}`; }
 
 function mergeSections(dataset, sectionsDoc, { overwrite = false } = {}) {
@@ -466,18 +534,23 @@ function mergeSections(dataset, sectionsDoc, { overwrite = false } = {}) {
     if (!target) continue;
 
     const incoming = Array.isArray(entry.sections) ? entry.sections : [];
+    // normaliza los slots entrantes
+    for (const s of incoming) normalizeSectionSlots(s);
 
     if (overwrite || !Array.isArray(target.sections) || target.sections.length === 0) {
-      // sobrescribe o llena si no había nada
       target.sections = incoming;
     } else {
-      // mezcla sin duplicar (por crn|label|room)
-      const map = new Map((target.sections||[]).map(s => [keyOfSec(s), s]));
+      const base = target.sections || [];
+      for (const s of base) normalizeSectionSlots(s);
+
+      // mezcla sin duplicados (por crn|label|room)
+      const map = new Map(base.map(s => [keyOfSec(s), s]));
       for (const s of incoming) map.set(keyOfSec(s), s);
       target.sections = [...map.values()];
     }
   }
 }
+
 
 async function reloadSections(versionTag = "", opts = { overwrite: true, notify: false }) {
   try {
