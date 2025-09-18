@@ -574,7 +574,7 @@ function showView(id){
 
   document.body.classList.toggle("plan-focus", id === "plan");
 
-  // Si existiera grafo en el futuro, lo maneja sin romper
+  // Si en el futuro vuelves a habilitar la malla, no rompe
   if (id === "graph" && window.Graph && document.getElementById("graph")) {
     if (!window.App.cy) {
       window.Graph.initGraph();

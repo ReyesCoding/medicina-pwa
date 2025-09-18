@@ -1,7 +1,6 @@
 // pwa/sw.js
-const CACHE = "medicina-static-v28";
+const CACHE = "medicina-static-v29";
 
-// ✅ Archivos estáticos a precache (no incluir sections.json)
 const PRECACHE_URLS = [
   "./",
   "./index.html",
@@ -11,56 +10,47 @@ const PRECACHE_URLS = [
   "./planner.js",
   "./gpa.js",
   "./schedule.js",
-  //"./graph.js",
+  // "./graph.js", // removido
   "./assets/icon-192.png",
   "./assets/icon-512.png",
   "./pwa/manifest.json"
 ];
 
-// Install: precache
 self.addEventListener("install", (e) => {
-  e.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(PRECACHE_URLS))
-  );
-  self.skipWaiting();
+  e.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(PRECACHE_URLS)));
 });
 
-// Activate: limpia caches antiguos
 self.addEventListener("activate", (e) => {
   e.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.filter(k => k !== CACHE).map(k => caches.delete(k))
-    ))
+    caches.keys().then((keys) =>
+      Promise.all(keys.map((k) => (k === CACHE ? null : caches.delete(k))))
+    )
   );
-  self.clients.claim();
 });
 
-// Fetch: branch especial network-first para JSONs dinámicos
 self.addEventListener("fetch", (e) => {
-  const url = new URL(e.request.url);
-
-  // Ignora esquemas no http/https (chrome-extension, data:, etc.)
-  if (url.protocol !== "http:" && url.protocol !== "https:") return;
-
-  // ✅ Network-first para pensum y secciones
-  if (url.pathname.endsWith("/data/medicine-2013.json") ||
-      url.pathname.endsWith("/data/medicine-2013-sections.json")) {
-    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
-    return;
-  }
-
-  // Resto: cache-first
+  const req = e.request;
   e.respondWith(
-    caches.match(e.request).then(cached => {
+    caches.match(req).then((cached) => {
       if (cached) return cached;
-      return fetch(e.request).then(resp => {
-        if (e.request.method === "GET" && resp && resp.status === 200 && resp.type === "basic" &&
-            (url.origin === self.location.origin)) {
-          const clone = resp.clone();
-          caches.open(CACHE).then(cache => cache.put(e.request, clone));
-        }
-        return resp;
-      }).catch(() => cached);
+      return fetch(req)
+        .then((resp) => {
+          try {
+            const url = new URL(req.url);
+            if (
+              req.method === "GET" &&
+              resp &&
+              resp.status === 200 &&
+              resp.type === "basic" &&
+              url.origin === self.location.origin
+            ) {
+              const clone = resp.clone();
+              caches.open(CACHE).then((cache) => cache.put(req, clone));
+            }
+          } catch {}
+          return resp;
+        })
+        .catch(() => cached);
     })
   );
 });

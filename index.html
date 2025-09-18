@@ -5,17 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title>Pensum Medicina</title>
 
-  <!-- Si tu manifest está en la raíz, usa esta ruta -->
-  <link rel="manifest" href="manifest.json">
+  <!-- Manifest en /pwa (coincide con rutas de iconos en el manifest) -->
+  <link rel="manifest" href="pwa/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
 
   <link rel="icon" href="assets/icon-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/icon-180.png">
   <link rel="apple-touch-icon" href="assets/icon-192.png">
-
-  <!-- (REMOVIDO) cytoscape -->
-  <!-- <script src="https://unpkg.com/cytoscape@3.29.2/dist/cytoscape.min.js" defer></script> -->
 
   <link rel="stylesheet" href="styles.css">
   <script type="module" src="config.js"></script>
@@ -35,7 +32,7 @@
     <aside class="panel">
       <div class="section">Vistas</div>
       <div class="buttons">
-        <!-- (REMOVIDO) <button id="btnViewGraph">Malla (grafo)</button> -->
+        <!-- Malla removida -->
         <button id="btnViewList">Lista</button>
         <button id="btnViewPlan">Plan próximo</button>
       </div>
@@ -64,7 +61,8 @@
     </aside>
 
     <section class="content">
-      <!-- (REMOVIDO) <div id="graph" class="card" hidden></div> -->
+      <!-- Malla removida: <div id="graph" class="card" hidden></div> -->
+
       <div id="list" class="card" hidden>
         <div class="toolbar">
           <input id="inpSearch" placeholder="Buscar por código o nombre…">
@@ -80,8 +78,8 @@
 
       <div id="plan" class="card" hidden>
         <div class="toolbar">
-          <button id="btnSuggestPlan">Sugerir plan</button>
-          <div class="hint">Respeta prerrequisitos, co-requisitos, choques de horario y tope de créditos.</div>
+          <button id="btnSuggest">Sugerir plan</button>
+          <div id="planInfo" class="hint"></div>
         </div>
         <div id="planBody"></div>
       </div>
@@ -95,7 +93,7 @@
 
   <footer class="foot">Hecho para estudiantes de Medicina • PWA offline • Sin backend</footer>
 
-  <!-- (REMOVIDO) <script type="module" src="graph.js"></script> -->
+  <!-- graph.js removido -->
   <script type="module" src="planner.js"></script>
   <script type="module" src="gpa.js"></script>
   <script type="module" src="schedule.js"></script>
