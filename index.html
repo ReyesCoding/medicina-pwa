@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title>Pensum Medicina</title>
 
-  <link rel="manifest" href="pwa/manifest.json">
+  <!-- Si tu manifest está en la raíz, usa esta ruta -->
+  <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
 
@@ -13,8 +14,8 @@
   <link rel="apple-touch-icon" sizes="180x180" href="assets/icon-180.png">
   <link rel="apple-touch-icon" href="assets/icon-192.png">
 
-  <link rel="preconnect" href="https://unpkg.com">
-  <script src="https://unpkg.com/cytoscape@3.29.2/dist/cytoscape.min.js" defer></script>
+  <!-- (REMOVIDO) cytoscape -->
+  <!-- <script src="https://unpkg.com/cytoscape@3.29.2/dist/cytoscape.min.js" defer></script> -->
 
   <link rel="stylesheet" href="styles.css">
   <script type="module" src="config.js"></script>
@@ -34,7 +35,7 @@
     <aside class="panel">
       <div class="section">Vistas</div>
       <div class="buttons">
-        <button id="btnViewGraph">Malla (grafo)</button>
+        <!-- (REMOVIDO) <button id="btnViewGraph">Malla (grafo)</button> -->
         <button id="btnViewList">Lista</button>
         <button id="btnViewPlan">Plan próximo</button>
       </div>
@@ -42,9 +43,9 @@
       <div class="section">Opciones</div>
       <div class="stack">
         <label>Tope créditos período
-          <input id="inpMaxCredits" type="number" min="8" max="30" value="18">
+          <input id="inpMaxCredits" type="number" min="8" max="30" step="1" value="22">
         </label>
-        <label>Escala de notas
+        <label>Escala de calificaciones
           <select id="selScale">
             <option value="numeric">Numérica (0–100)</option>
             <option value="letters">Letras (A–F)</option>
@@ -63,7 +64,7 @@
     </aside>
 
     <section class="content">
-      <div id="graph" class="card" hidden></div>
+      <!-- (REMOVIDO) <div id="graph" class="card" hidden></div> -->
       <div id="list" class="card" hidden>
         <div class="toolbar">
           <input id="inpSearch" placeholder="Buscar por código o nombre…">
@@ -76,10 +77,11 @@
         </div>
         <div id="listBody"></div>
       </div>
+
       <div id="plan" class="card" hidden>
         <div class="toolbar">
-          <button id="btnSuggest">Sugerir plan</button>
-          <div id="planInfo"></div>
+          <button id="btnSuggestPlan">Sugerir plan</button>
+          <div class="hint">Respeta prerrequisitos, co-requisitos, choques de horario y tope de créditos.</div>
         </div>
         <div id="planBody"></div>
       </div>
@@ -93,7 +95,7 @@
 
   <footer class="foot">Hecho para estudiantes de Medicina • PWA offline • Sin backend</footer>
 
-  <script type="module" src="graph.js"></script>
+  <!-- (REMOVIDO) <script type="module" src="graph.js"></script> -->
   <script type="module" src="planner.js"></script>
   <script type="module" src="gpa.js"></script>
   <script type="module" src="schedule.js"></script>

@@ -568,17 +568,18 @@ async function reloadSections(versionTag = "", opts = { overwrite: true, notify:
 
 //——— Vista
 function showView(id){
-  for (const el of ["#graph","#list","#plan"].map($)) el.hidden = true;
-  $("#"+id).hidden = false;
+  ["#graph","#list","#plan"].map($).forEach(el => { if (el) el.hidden = true; });
+  const target = $("#"+id);
+  if (target) target.hidden = false;
 
-  // activa modo Plan (para que el CSS actúe)
   document.body.classList.toggle("plan-focus", id === "plan");
 
-  if (id === "graph") {
-    if (!window.App.cy && window.Graph) {
+  // Si existiera grafo en el futuro, lo maneja sin romper
+  if (id === "graph" && window.Graph && document.getElementById("graph")) {
+    if (!window.App.cy) {
       window.Graph.initGraph();
       setTimeout(()=> window.App.cy && window.App.cy.resize(), 0);
-    } else if (window.App.cy) {
+    } else {
       window.App.cy.resize();
     }
   }
@@ -816,9 +817,9 @@ async function boot() {
   }
 
   // Navegación
-$on($("#btnViewGraph"), "click", () => showView("graph"));
-$on($("#btnViewList"),  "click", () => showView("list"));
-$on($("#btnViewPlan"),  "click", () => showView("plan"));
+$on($("#btnViewList"), "click", () => showView("list"));
+$on($("#btnViewPlan"), "click", () => showView("plan"));
+
 
 
   // SW (raíz)
