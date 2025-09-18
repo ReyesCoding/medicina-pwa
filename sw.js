@@ -1,5 +1,5 @@
 // pwa/sw.js
-const CACHE = "medicina-static-v29";
+const CACHE = "medicina-static-v30";
 
 const PRECACHE_URLS = [
   "./",
@@ -10,7 +10,6 @@ const PRECACHE_URLS = [
   "./planner.js",
   "./gpa.js",
   "./schedule.js",
-  // "./graph.js", // removido
   "./assets/icon-192.png",
   "./assets/icon-512.png",
   "./pwa/manifest.json"

@@ -394,98 +394,136 @@ function renderDetail(id) {
 }
 
 //——— PLAN
+//——— PLAN
 function renderPlan() {
   const body = $("#planBody");
   if (!body) return;
 
-  const ids = [...state.plan];
-  const rows = ids.map(id => {
+  // Asegura que exista #planInfo (guard)
+  let planInfo = $("#planInfo");
+  if (!planInfo) {
+    const tb = $("#plan .toolbar");
+    if (tb) {
+      planInfo = document.createElement("div");
+      planInfo.id = "planInfo";
+      planInfo.className = "hint";
+      tb.appendChild(planInfo);
+    }
+  }
+
+  const ids = [...state.plan]; // ids de materias en el plan
+  const rowsHtml = ids.map((id) => {
     const c = byId(id);
     if (!c) return "";
     const secs = c.sections || [];
-    const sel = state.selectedSections[id]?.crn || "";
+    const selCrn = state.selectedSections?.[id]?.crn || "";
+
     const opts = secs.length
       ? `<select data-id="${id}" class="secSel">
            <option value="">Elegir sección…</option>
            ${secs.map(s => `
              <option
                value="${s.crn}"
-               ${String(s.crn)===String(sel) ? "selected" : ""}
+               ${String(s.crn) === String(selCrn) ? "selected" : ""}
                ${s.closed ? "disabled" : ""}
                title="${s.closed ? "Sección cerrada" : "Disponible"}"
              >
-               ${s.crn || "(s/clave)"} — ${s.label}${s.room ? " · "+s.room : ""}${s.closed ? " [Cerrado]" : ""}
-             </option>`).join("")}
+               ${s.crn || "(s/clave)"} — ${s.label}${s.room ? ` · ${s.room}` : ""}
+             </option>
+           `).join("")}
          </select>`
-      : `<span class="muted">Sin horarios cargados</span>`;
+      : `<div class="muted">Sin secciones publicadas</div>`;
 
     return `
       <div class="plan-row" data-id="${id}">
-        <div class="col name"><b>${c.id}</b> — ${c.name}</div>
-        <div class="col cr">${c.credits} cr <button data-act="rm">Quitar</button></div>
-        <div class="col sec">
-          ${opts} <span class="hint" id="hint-${id}"></span>
+        <div class="row-head">
+          <div class="title"><b>${c.id}</b> — ${c.name}</div>
+          <div class="meta">${c.credits || 0} créditos</div>
+          <button class="link" data-act="rm" title="Quitar del plan">Quitar</button>
+        </div>
+        <div class="row-body">
+          <div class="control">
+            ${opts}
+            <div id="hint-${id}" class="hint small"></div>
+          </div>
         </div>
       </div>
     `;
   }).join("");
 
-  body.innerHTML = rows || "<div class='muted'>No hay materias en el plan.</div>";
+  body.innerHTML = rowsHtml || "<div class='muted'>No hay materias en el plan.</div>";
 
-  // Quitar del plan
-  body.querySelectorAll("[data-act='rm']").forEach(b => {
-    b.addEventListener("click", e => {
-      const id = e.target.closest(".plan-row").getAttribute("data-id");
-      delete state.selectedSections[id];
-      state.plan.delete(id);
-      save(); renderPlan();
+  // Botón quitar del plan
+  body.querySelectorAll("[data-act='rm']").forEach((b) => {
+    b.addEventListener("click", (e) => {
+      const row = e.currentTarget.closest(".plan-row");
+      if (!row) return;
+      const cid = row.getAttribute("data-id");
+      delete state.selectedSections?.[cid];
+      state.plan.delete(cid);
+      save();
+      renderPlan();
     });
   });
 
   // Seleccionar sección + validar choques
-  body.querySelectorAll(".secSel").forEach(sel => {
+  body.querySelectorAll(".secSel").forEach((sel) => {
     sel.addEventListener("change", () => {
       const cid  = sel.getAttribute("data-id");
       const c    = byId(cid);
       const secs = c?.sections || [];
       const hint = document.getElementById(`hint-${cid}`);
-      const pick = secs.find(s => String(s.crn) === String(sel.value));
+      const pick = secs.find((s) => String(s.crn) === String(sel.value));
 
+      // Si no hay elección, limpia
       if (!pick) {
-        delete state.selectedSections[cid];
+        if (state.selectedSections) delete state.selectedSections[cid];
         if (hint) hint.textContent = "";
         save();
         return;
       }
 
-      // Cerrado
-      if (pick?.closed) {
-        alert("Esa sección está cerrada. Elige otra opción.");
-        sel.value = state.selectedSections[cid]?.crn || "";
-        if (hint) hint.textContent = "";
-        return;
+      // Marca cerrada (permitimos elegir pero avisamos)
+      if (pick.closed && hint) {
+        hint.textContent = "Sección cerrada";
       }
 
-      // Choques
-      const tmp = { ...state.selectedSections, [cid]: pick };
-      if (window.Schedule?.hasConflict(tmp)) {
-        alert("Choque de horario con otra materia del plan. Elige otra sección.");
-        sel.value = state.selectedSections[cid]?.crn || "";
-        if (hint) hint.textContent = "";
-        return;
+      // Chequear choques de horario con el resto de secciones elegidas del plan
+      try {
+        const chosen = Object.entries(state.selectedSections || {})
+          .filter(([k]) => state.plan.has(k))            // solo materias del plan actual
+          .map(([,s]) => s)
+          .filter((s) => Array.isArray(s.slots) && s.slots.length > 0);
+
+        // Reemplaza (o agrega) la del curso actual por la nueva selección
+        const currentOthers = chosen.filter((s) => String(s.crn) !== String(pick.crn));
+        const entries = [...currentOthers, pick];
+
+        if (window.Schedule?.hasConflict(entries)) {
+          if (hint) hint.textContent = "Choque de horario con otra sección del plan";
+          // revertimos visualmente la selección
+          sel.value = "";
+          if (state.selectedSections) delete state.selectedSections[cid];
+          save();
+          return;
+        }
+      } catch (_) {
+        // si Schedule no está disponible o falla, no bloqueamos la elección
       }
 
+      // Guardar selección
+      state.selectedSections = state.selectedSections || {};
       state.selectedSections[cid] = pick;
-      save();
       if (hint) hint.textContent = "Sección guardada";
+      save();
     });
   });
 
-  // Totales y botón sugerir
-  const used = ids.reduce((a,id)=> a + (byId(id)?.credits || 0), 0);
-  $("#planInfo").textContent = `Créditos planificados: ${used} / ${state.maxCredits}`;
+  // Totales de créditos y botón sugerir (IDs tolerantes)
+  const used = ids.reduce((a, id) => a + (byId(id)?.credits || 0), 0);
+  if (planInfo) planInfo.textContent = `Créditos planificados: ${used} / ${state.maxCredits}`;
 
-  const btn = $("#btnSuggest");
+  const btn = $("#btnSuggest") || $("#btnSuggestPlan");
   if (btn && !btn._bound) {
     btn._bound = true;
     btn.addEventListener("click", () => window.Planner?.suggestPlan());
