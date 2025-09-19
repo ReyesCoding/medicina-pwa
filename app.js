@@ -208,8 +208,19 @@ function groupFrom(course){
   const area = String(course.area || "").toUpperCase();
   return course.elective_group || (CONFIG.ELECTIVE_FALLBACK_BY_AREA?.[area] || null);
 }
+window.groupFrom = groupFrom;
 
-window.groupFrom = groupFrom; // para usarlo en la consola
+function electiveTag(course){
+  if (!course?.is_elective) return "";
+  const g = (groupFrom(course) || "GEN").toUpperCase();      // GEN | CLINICAS | BASICAS | PREMED
+  const gcls = g.toLowerCase();
+  const label = (CONFIG.ELECTIVE_TITLES?.[g])
+    ? CONFIG.ELECTIVE_TITLES[g]
+    : (g === "GEN" ? "Electiva" : `Electiva · ${g}`);
+  return `<span class="tag tag-elec ${gcls}">${label}</span>`;
+}
+window.electiveTag = electiveTag;
+
 
 //——— LISTA
 function renderList() {
@@ -257,18 +268,17 @@ function renderList() {
           if (f === "blocked" && isAvailable(c.id)) continue;
         }
 
-        const item = document.createElement("div");
-        item.className = "list-item";
-        item.setAttribute("data-id", c.id);
-        const eg = c.is_elective ? groupFrom(c) : null;
-        const tagElect = eg ? `<span class="tag tag-elec">${CONFIG.ELECTIVE_TITLES[eg] || "Electiva"}</span>` : "";
-        const status = isPassed(c.id) ? "Aprobada" : (isAvailable(c.id) ? "Disponible" : "Bloqueada");
+       const item = document.createElement("div");
+item.className = "list-item";
+item.setAttribute("data-id", c.id);
+const tagElect = electiveTag(c);
+const status = isPassed(c.id) ? "Aprobada" : (isAvailable(c.id) ? "Disponible" : "Bloqueada");
 
-        item.innerHTML = `
-          <div class="li-left">
-            <div><b>${c.id}</b> — ${c.name} ${tagElect}</div>
-            <div class="muted">${(c.block||c.area||"").toString()} · ${c.credits} cr · HT ${c.ht??"—"} · HP ${c.hp??"—"}</div>
-          </div>
+item.innerHTML = `
+  <div class="li-left">
+    <div><b>${c.id}</b> — ${c.name} ${tagElect}</div>
+    <div class="muted">${(c.block||c.area||"").toString()} · ${c.credits} cr · HT ${c.ht??"—"} · HP ${c.hp??"—"}</div>
+  </div>
           <div class="li-right">
             <span class="pill">${status}</span>
             ${isPassed(c.id) ? 
@@ -342,7 +352,7 @@ function renderDetail(id) {
 
   $("#detail").innerHTML = `
     <div style="display:flex;flex-direction:column;gap:8px">
-      <div><b>${c.id}</b> — ${c.name}</div>
+    <div><b>${c.id}</b> — ${c.name} ${electiveTag(c)}</div>
       <div>${c.block || "—"} · ${c.credits} cr · HT ${c.ht ?? "—"} · HP ${c.hp ?? "—"}</div>
       <div>Estado: <span class="pill">${status}</span></div>
       <div>Prerrequisitos: ${prs}</div>
@@ -437,7 +447,7 @@ function renderPlan() {
     return `
       <div class="plan-row" data-id="${id}">
         <div class="row-head">
-          <div class="title"><b>${c.id}</b> — ${c.name}</div>
+        <div class="col name"><b>${c.id}</b> — ${c.name} ${electiveTag(c)}</div>
           <div class="meta">${c.credits || 0} créditos</div>
           <button class="link" data-act="rm" title="Quitar del plan">Quitar</button>
         </div>
@@ -445,12 +455,13 @@ function renderPlan() {
           <div class="control">
             ${opts}
             <div id="hint-${id}" class="hint small"></div>
+            
           </div>
         </div>
       </div>
     `;
   }).join("");
-
+  
   body.innerHTML = rowsHtml || "<div class='muted'>No hay materias en el plan.</div>";
 
   // Botón quitar del plan
