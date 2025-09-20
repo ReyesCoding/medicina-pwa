@@ -274,18 +274,21 @@ item.setAttribute("data-id", c.id);
 const tagElect = electiveTag(c);
 const status = isPassed(c.id) ? "Aprobada" : (isAvailable(c.id) ? "Disponible" : "Bloqueada");
 
-item.innerHTML = `
-  <div class="li-left">
-    <div><b>${c.id}</b> — ${c.name} ${tagElect}</div>
-    <div class="muted">${(c.block||c.area||"").toString()} · ${c.credits} cr · HT ${c.ht??"—"} · HP ${c.hp??"—"}</div>
+$("#detail").innerHTML = `
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div class="title-line"><b>${c.id}</b> — ${c.name} ${electiveTag(c)}</div>
+    <div>${c.block || "—"} · ${c.credits} cr · HT ${c.ht ?? "—"} · HP ${c.hp ?? "—"}</div>
+    <div>Estado: <span class="pill">${status}</span></div>
+    <div>Prerrequisitos: ${prs}</div>
+    <div>Correquisitos: ${cos}</div>
+    <div>
+      ${isPassed(c.id)
+        ? `<span class="muted">Ya aprobada</span>`
+        : `<button class="btn" data-act="pass" ${status!=="Disponible" ? "disabled" : ""}>Marcar aprobada</button>`
+      }
+    </div>
   </div>
-          <div class="li-right">
-            <span class="pill">${status}</span>
-            ${isPassed(c.id) ? 
-              `<button class="btn-unpass">Desaprobar</button>` :
-              `<button class="btn-pass"${isAvailable(c.id) ? "" : " disabled title='Completa los prerrequisitos'"}>Marcar aprobada</button>`}
-          </div>
-        `;
+`;
         ul.appendChild(item);
       }
       list.appendChild(ul);
@@ -341,66 +344,60 @@ item.innerHTML = `
 }
 
 //——— DETALLE
+//——— DETALLE
 function renderDetail(id) {
+  const panel = $("#detail");
+  if (!panel) return;
+
   const c = byId(id);
-  if (!c) { $("#detail").textContent = "Selecciona una materia…"; return; }
+  if (!c) { panel.textContent = "Selecciona una materia…"; return; }
 
-  const status = isPassed(id) ? "Aprobada" : (isAvailable(id) ? "Disponible" : "Bloqueada");
-  const prs = (c.prereqs || []).map(x=>`<span class="pill">${x}</span>`).join("") || "<span class='pill'>—</span>";
-  const cos = (c.coreqs  || []).map(x=>`<span class="pill">${x}</span>`).join("") || "<span class='pill'>—</span>";
-  const grade = state.grades[id] ?? "";
+  const status  = isPassed(c.id) ? "Aprobada" : (isAvailable(c.id) ? "Disponible" : "Bloqueada");
+  const prs     = (c.prereqs || []).map(x => `<span class="pill">${x}</span>`).join("") || "<span class='pill'>—</span>";
+  const cos     = (c.coreqs  || []).map(x => `<span class="pill">${x}</span>`).join("") || "<span class='pill'>—</span>";
+  const tagElect = electiveTag(c);
 
-  $("#detail").innerHTML = `
+  panel.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:8px">
-    <div><b>${c.id}</b> — ${c.name} ${electiveTag(c)}</div>
-      <div>${c.block || "—"} · ${c.credits} cr · HT ${c.ht ?? "—"} · HP ${c.hp ?? "—"}</div>
+      <div class="title-line"><b>${c.id}</b> — ${c.name} ${tagElect}</div>
+      <div>${c.block || (c.area || "—")} · ${c.credits ?? 0} cr · HT ${c.ht ?? "—"} · HP ${c.hp ?? "—"}</div>
       <div>Estado: <span class="pill">${status}</span></div>
       <div>Prerrequisitos: ${prs}</div>
       <div>Correquisitos: ${cos}</div>
       <div>
-        Calificación:
-        <input id="inpGrade" placeholder="Ej: 85 o A-" value="${grade}">
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        ${isPassed(id)
-          ? `<button id="btnUnpass">Desaprobar</button>`
-          : (isAvailable(id)
-              ? `<button id="btnPass">Marcar aprobada</button>`
-              : `<button id="btnPass" disabled title="Completa los prerrequisitos">Marcar aprobada</button>`)}
-        <button id="btnSaveGrade" class="ghost">Guardar calificación</button>
+        ${
+          isPassed(c.id)
+            ? `<span class="muted">Ya aprobada</span>`
+            : `<button class="btn" id="btnPassDetail" ${status !== "Disponible" ? "disabled" : ""}>Marcar aprobada</button>`
+        }
       </div>
     </div>
   `;
 
-  $on($("#btnSaveGrade"), "click", ()=>{
-    const v = $("#inpGrade").value.trim();
-    if (v === "") delete state.grades[id];
-    else state.grades[id] = v;
-    save(); setKPIs();
-  });
+  // Acción "Marcar aprobada" desde el detalle
+  const btn = $("#btnPassDetail");
+  if (btn) {
+    btn.addEventListener("click", () => {
+      // si está deshabilitado, no hacemos nada
+      if (btn.disabled) return;
 
-  const bp = $("#btnPass");
-  if (bp) $on(bp, "click", ()=>{
-    if (!isAvailable(id)) return;
-    const needGrade = CONFIG.GPA?.REQUIRE_GRADE_ON_PASS;
-    const v = ($("#inpGrade")?.value || "").trim();
-    if (needGrade) {
-      const n = Number(v);
-      if (!v || Number.isNaN(n) || n < 0 || n > 100) {
-        alert("Ingresa una calificación válida (0–100) antes de aprobar.");
-        $("#inpGrade")?.focus(); return;
-      }
-      if (n < CONFIG.GPA.PASSING_MIN_NUMERIC) {
-        alert(`No se aprueba con nota menor a ${CONFIG.GPA.PASSING_MIN_NUMERIC}.`);
-        $("#inpGrade")?.focus(); return;
-      }
-      state.grades[id] = n;
-    }
-    setPassed(id, true);
-  });
+      // pedir calificación (0–100). Ajusta si usas escala por letras.
+      let grade = prompt("Calificación (0–100):", "80");
+      if (grade == null) return; // cancelado
+      grade = Number(grade);
+      if (!Number.isFinite(grade)) return;
 
-  const bu = $("#btnUnpass");
-  if (bu) $on(bu, "click", ()=> setPassed(id,false));
+      state.grades[c.id] = grade;
+      state.passed.add(c.id);
+      save();
+
+      // refrescar vistas
+      renderList();
+      renderPlan();
+      renderDetail(c.id);
+      if (typeof updateKpis === "function") updateKpis();
+    });
+  }
 }
 
 //——— PLAN
