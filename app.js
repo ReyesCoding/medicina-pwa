@@ -251,48 +251,82 @@ function renderList() {
     list.appendChild(h);
 
     // pinta un bloque (lista) con items filtrados por búsqueda/filtro
-    const paintBlock = (arr, blockTitle=null) => {
-      const ul = document.createElement("div");
-      ul.className = "list-block";
-      if (blockTitle) {
-        const sub = document.createElement("div");
-        sub.className = "subhead";
-        sub.textContent = blockTitle;
-        ul.appendChild(sub);
-      }
-      for (const c of arr) {
-        if (q && !(c.name.toLowerCase().includes(q) || String(c.id).toLowerCase().includes(q))) continue;
-        if (f !== "all") {
-          if (f === "passed" && !state.passed.has(c.id)) continue;
-          if (f === "available" && !isAvailable(c.id)) continue;
-          if (f === "blocked" && isAvailable(c.id)) continue;
+    // Bloque que pinta un grupo de cursos en la LISTA (no toca #detail)
+const paintBlock = (arr, blockTitle = null) => {
+  const ul = document.createElement("div");
+  ul.className = "list-block";
+
+  if (blockTitle) {
+    const sub = document.createElement("div");
+    sub.className = "subhead";
+    sub.textContent = blockTitle;
+    ul.appendChild(sub);
+  }
+
+  for (const c of arr) {
+    // filtros de búsqueda/estado (q y f vienen del scope de renderList)
+    if (q && !(c.name.toLowerCase().includes(q) || String(c.id).toLowerCase().includes(q))) continue;
+    if (f !== "all") {
+      if (f === "passed" && !state.passed.has(c.id)) continue;
+      if (f === "available" && !isAvailable(c.id)) continue;
+      if (f === "blocked" && isAvailable(c.id)) continue;
+    }
+
+    const item = document.createElement("div");
+    item.className = "list-item";
+    item.setAttribute("data-id", c.id);
+
+    const tagElect = electiveTag(c);
+    const status   = isPassed(c.id) ? "Aprobada" : (isAvailable(c.id) ? "Disponible" : "Bloqueada");
+    const prs      = (c.prereqs || []).map(x => `<span class="pill">${x}</span>`).join("") || "<span class='pill'>—</span>";
+    const cos      = (c.coreqs  || []).map(x => `<span class="pill">${x}</span>`).join("") || "<span class='pill'>—</span>";
+
+    item.innerHTML = `
+      <div class="li-left">
+        <div class="title-line">
+          <div><b>${c.id}</b> — ${c.name}</div>
+          ${tagElect}
+        </div>
+        <div class="muted">${(c.block || c.area || "—")} · ${c.credits ?? 0} cr · HT ${c.ht ?? "—"} · HP ${c.hp ?? "—"}</div>
+        <div class="muted small">Prerrequisitos: ${prs} · Correquisitos: ${cos}</div>
+      </div>
+
+      <div class="li-right">
+        <span class="pill">${status}</span>
+        ${
+          isPassed(c.id)
+            ? `<span class="muted">Ya aprobada</span>`
+            : `<button class="btn" data-act="pass" ${status !== "Disponible" ? "disabled" : ""}>Marcar aprobada</button>`
         }
+      </div>
+    `;
 
-       const item = document.createElement("div");
-item.className = "list-item";
-item.setAttribute("data-id", c.id);
-const tagElect = electiveTag(c);
-const status = isPassed(c.id) ? "Aprobada" : (isAvailable(c.id) ? "Disponible" : "Bloqueada");
+    // Acción "Marcar aprobada" desde la lista
+    const passBtn = item.querySelector("[data-act='pass']");
+    if (passBtn) {
+      passBtn.addEventListener("click", () => {
+        if (passBtn.disabled) return;
+        let grade = prompt("Calificación (0–100):", "80");
+        if (grade == null) return;
+        grade = Number(grade);
+        if (!Number.isFinite(grade) || grade < 0 || grade > 100) return;
 
-$("#detail").innerHTML = `
-  <div style="display:flex;flex-direction:column;gap:8px">
-    <div class="title-line"><b>${c.id}</b> — ${c.name} ${electiveTag(c)}</div>
-    <div>${c.block || "—"} · ${c.credits} cr · HT ${c.ht ?? "—"} · HP ${c.hp ?? "—"}</div>
-    <div>Estado: <span class="pill">${status}</span></div>
-    <div>Prerrequisitos: ${prs}</div>
-    <div>Correquisitos: ${cos}</div>
-    <div>
-      ${isPassed(c.id)
-        ? `<span class="muted">Ya aprobada</span>`
-        : `<button class="btn" data-act="pass" ${status!=="Disponible" ? "disabled" : ""}>Marcar aprobada</button>`
-      }
-    </div>
-  </div>
-`;
-        ul.appendChild(item);
-      }
-      list.appendChild(ul);
-    };
+        state.grades[c.id] = grade;
+        state.passed.add(c.id);
+        save();
+
+        renderList();
+        renderPlan();
+        renderDetail(c.id);
+        if (typeof updateKpis === "function") updateKpis();
+      });
+    }
+
+    ul.appendChild(item);
+  }
+
+  list.appendChild(ul);
+};
 
     // Requeridas
     paintBlock(required);
@@ -344,7 +378,6 @@ $("#detail").innerHTML = `
 }
 
 //——— DETALLE
-//——— DETALLE
 function renderDetail(id) {
   const panel = $("#detail");
   if (!panel) return;
@@ -352,15 +385,15 @@ function renderDetail(id) {
   const c = byId(id);
   if (!c) { panel.textContent = "Selecciona una materia…"; return; }
 
-  const status  = isPassed(c.id) ? "Aprobada" : (isAvailable(c.id) ? "Disponible" : "Bloqueada");
-  const prs     = (c.prereqs || []).map(x => `<span class="pill">${x}</span>`).join("") || "<span class='pill'>—</span>";
-  const cos     = (c.coreqs  || []).map(x => `<span class="pill">${x}</span>`).join("") || "<span class='pill'>—</span>";
+  const status   = isPassed(c.id) ? "Aprobada" : (isAvailable(c.id) ? "Disponible" : "Bloqueada");
+  const prs      = (c.prereqs || []).map(x => `<span class="pill">${x}</span>`).join("") || "<span class='pill'>—</span>";
+  const cos      = (c.coreqs  || []).map(x => `<span class="pill">${x}</span>`).join("") || "<span class='pill'>—</span>";
   const tagElect = electiveTag(c);
 
   panel.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:8px">
       <div class="title-line"><b>${c.id}</b> — ${c.name} ${tagElect}</div>
-      <div>${c.block || (c.area || "—")} · ${c.credits ?? 0} cr · HT ${c.ht ?? "—"} · HP ${c.hp ?? "—"}</div>
+      <div>${c.block || "—"} · ${c.credits ?? 0} cr · HT ${c.ht ?? "—"} · HP ${c.hp ?? "—"}</div>
       <div>Estado: <span class="pill">${status}</span></div>
       <div>Prerrequisitos: ${prs}</div>
       <div>Correquisitos: ${cos}</div>
@@ -374,24 +407,20 @@ function renderDetail(id) {
     </div>
   `;
 
-  // Acción "Marcar aprobada" desde el detalle
+  // Acción "Marcar aprobada" desde el detalle (si está habilitado)
   const btn = $("#btnPassDetail");
   if (btn) {
     btn.addEventListener("click", () => {
-      // si está deshabilitado, no hacemos nada
       if (btn.disabled) return;
-
-      // pedir calificación (0–100). Ajusta si usas escala por letras.
       let grade = prompt("Calificación (0–100):", "80");
-      if (grade == null) return; // cancelado
+      if (grade == null) return;
       grade = Number(grade);
-      if (!Number.isFinite(grade)) return;
+      if (!Number.isFinite(grade) || grade < 0 || grade > 100) return;
 
       state.grades[c.id] = grade;
       state.passed.add(c.id);
       save();
 
-      // refrescar vistas
       renderList();
       renderPlan();
       renderDetail(c.id);
