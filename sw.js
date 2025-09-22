@@ -1,5 +1,5 @@
 // sw.js (raíz) — versión “network-first” para HTML
-const CACHE = "medicina-static-v36";
+const CACHE = "medicina-static-v37";
 
 const PRECACHE_URLS = [
   "./",

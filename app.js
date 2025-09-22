@@ -925,6 +925,5 @@ $on($("#btnViewPlan"), "click", () => showView("plan"));
   if (window.Graph && document.getElementById("graph")) {
     // window.Graph.initGraph();
   }
-}
 
 boot();
