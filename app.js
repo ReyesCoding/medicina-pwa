@@ -820,7 +820,7 @@ function loadDatasetOverride(){
 state.selectedSections = {}; // { courseId: sectionObj }
 
 //——— Boot
-async function boot() {
+async function boot() { 
   load();
 
   // 1) Carga pensum (network-first)
@@ -836,10 +836,27 @@ async function boot() {
   // 2) Overrides locales (admin)
   if (typeof loadDatasetOverride === "function") loadDatasetOverride();
 
-  // 3) Mezcla secciones públicas del repo (silencioso)
+  // 3) HOTFIX: electivas del 11 (BÁSICAS)  ← AQUÍ, después de tener dataset
+  (function hotfixElectivas11(){
+    if (!state?.dataset?.courses) return;
+    const ELEC11 = ["MED-941","MED-943","MED-956","MED-984","MED-988","MED-963"];
+    const touched = [];
+    for (const id of ELEC11) {
+      const c = state.dataset.courses.find(x => x.id === id || x.code === id);
+      if (!c) continue;
+      let changed = false;
+      if (String(c.cuatrimestre) !== "11") { c.cuatrimestre = "11"; changed = true; }
+      if (!c.is_elective) { c.is_elective = true; changed = true; }
+      if (!c.elective_group) { c.elective_group = "BASICAS"; changed = true; }
+      if (changed) touched.push(id);
+    }
+    if (touched.length) console.log("HOTFIX electivas 11 aplicado a:", touched);
+  })();
+
+  // 4) Mezcla secciones públicas
   await reloadSections("", { overwrite: true, notify: false });
 
-  // 4) Fallback de elective_group tras tener dataset final
+  // 5) Fallback de elective_group tras tener dataset final
   for (const c of state.dataset.courses) {
     if (c.is_elective && !c.elective_group) {
       const g = CONFIG.ELECTIVE_FALLBACK_BY_AREA?.[String(c.area || "").toUpperCase()];
@@ -847,12 +864,13 @@ async function boot() {
     }
   }
 
-  // 5) Índices y primer render (ya definitivo)
+  // 6) Índices y primer render
   rebuildIndexes();
   renderList();
   renderPlan();
   setKPIs();
   showView("list");
+}
 
   // 6) Panel admin y enlaces UI
   injectAdminButton?.();
