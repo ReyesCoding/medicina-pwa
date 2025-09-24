@@ -1,0 +1,290 @@
+Here’s a **complete English prompt** you can copy-paste into the other AI to (re)build the app cleanly.
+
+---
+
+# Prompt: “Medicine Curriculum Planner (PWA)”
+
+Build a **Progressive Web App (PWA)** that helps medical students plan their degree using the **2013 Medicine curriculum**. The app is **fully client-side** (no backend), reads local JSON files, and persists user state in `localStorage`. It must be lightweight, mobile-friendly, and work offline with a Service Worker.
+
+## Goals
+
+* Show all courses grouped by **term (1..18)** plus **Capstone/Thesis (19)**.
+* Let students mark courses as **Passed**, see whether each course is **Blocked** or **Available** based on pre/co-requisites, and build a **“Next Plan”** selecting **sections/schedules** with conflict detection.
+* Highlight **electives** (there are electives in terms **6, 11, 15**; elective groups by area: **GEN**, **BASICAS**, **CLINICAS**).
+* Provide an **Admin mode** (via `?admin=...`) to manage sections and optionally fix a course’s term, and export JSON.
+
+## Deliverables (files)
+
+* `index.html` (layout: List / Plan / Detail views)
+* `styles.css` (dark theme, responsive layout)
+* `app.js` (or, preferably, a modular structure below)
+* `config.js` (constants, labels)
+* `schedule.js` (time slots utilities + conflict detection)
+* `planner.js` (suggested plan logic)
+* `gpa.js` (simple GPA/average calculation, optional)
+* `graph.js` (optional “malla/graph” view)
+* `pwa/manifest.json`, `sw.js` (service worker with correct strategies)
+* `/data/medicine-2013.json` and `/data/medicine-2013-sections.json` (datasets)
+
+> Important: Fetch the pensum with `fetch("./data/medicine-2013.json?v="+Date.now(), {cache:"no-store"})`.
+> The Service Worker must be **network-first for HTML** and **network-first for JSON under `/data/`** to avoid serving stale JSON.
+
+## Suggested modular structure
+
+```
+src/
+  core/state.js          // app state, load/save (localStorage), indexes, pub/sub
+  data/pensum.js         // fetch pensum JSON + inline hotfix for term-11 electives
+  features/list.js       // renderList() + paintBlock() per term
+  features/detail.js     // renderDetail(id)
+  features/plan.js       // renderPlan(), select sections, validate conflicts
+  features/admin.js      // injectAdminPanel(), admin UI (sections/term)
+  lib/dom.js             // helpers $, $$, $on, html
+  lib/electives.js       // groupFrom(course), electiveTag(course)
+  lib/schedule.js        // parsePastedSchedules(), hasConflict(entries)
+main.js                  // boot() and wire-up
+```
+
+You may ship raw files or bundle with **Vite**; keep IDs/classes and flows consistent with this prompt.
+
+## Data schema
+
+`/data/medicine-2013.json`
+
+```json
+{
+  "program": "Medicine 2013",
+  "version": "2025-09-20-fixed-terms",
+  "courses": [
+    {
+      "id": "MED-342",
+      "code": "MED-342",
+      "name": "MEDICINA FORENSE",
+      "ht": 48, "hp": 0, "th": 48, "credits": 3,
+      "cuatrimestre": "11",
+      "area": "BASICAS",
+      "is_elective": false,
+      "elective_group": null,
+      "prereqs": ["MED-310","MED-315"],
+      "coreqs": []
+    }
+    // ...rest; electives exist in terms 6, 11 (BASICAS), 15 (CLINICAS)
+  ]
+}
+```
+
+`/data/medicine-2013-sections.json`
+
+```json
+{
+  "courses": [
+    {
+      "id": "MED-342",
+      "sections": [
+        {
+          "crn": "12345",
+          "label": "Sec 01 (Dr. X) Mon 8-10",
+          "room": "A-101",
+          "closed": false,
+          "slots": [
+            {"day": 1, "start": "08:00", "end": "10:00"}  // 1=Mon..6=Sat
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+## UI/UX (key elements)
+
+* **List** (left) & **Detail** (right):
+
+  * List groups **every term header from 1..18** (always render the header; if no items match filter, show “No courses in this term for current filter.”).
+  * Each list item:
+
+    ```html
+    <div class="list-item" data-id="MED-342">
+      <div class="li-left">
+        <div class="title-line">
+          <b>MED-342</b> — Medicina Forense
+          <span class="tag tag-elec basicas">Elective · BASICAS</span>
+        </div>
+        <div class="muted">BASICAS · 3 cr · HT 48 · HP 0</div>
+        <div class="muted small">
+          Prereqs: <span class="pill">MED-310</span> <span class="pill">MED-315</span> ·
+          Coreqs: <span class="pill">—</span>
+        </div>
+      </div>
+      <div class="li-right">
+        <span class="pill ok">Available</span>   <!-- ok=green, bad=red -->
+        <button class="btn" data-act="pass">Mark as passed</button>
+        <!-- if passed: <button class="btn btn-alt" data-act="unpass">Undo passed</button> and item has .is-passed (opacity .55) -->
+      </div>
+    </div>
+    ```
+  * Status pills: `.pill.ok` (green) for **Available**, `.pill.bad` (red) for **Blocked**.
+  * If **Blocked**, the “Mark as passed” button is **disabled**.
+  * If **Passed**, the item gets class `.is-passed` (opacity .55) + a **“Undo passed”** button.
+
+* **Detail** (`#detail`):
+
+  ```
+  <div class="title-line"><b>MED-342</b> — Medicina Forense {electiveTag}</div>
+  <div>BASICAS · 3 cr · HT 48 · HP 0</div>
+  <div>Status: <span class="pill ok|bad|...">Available|Blocked|Passed</span></div>
+  <div>Prerequisites: …</div>
+  <div>Corequisites: …</div>
+  <div>
+    <button class="btn" id="btnPassDetail" disabled|>Mark as passed</button>
+  </div>
+  ```
+
+* **Plan** (`#plan`):
+
+  * Toolbar with `#btnSuggest` and `#planInfo`.
+  * Courses in plan each have `<select class="secSel" data-id="MED-342">` to choose a **section (CRN)**.
+  * Validate conflicts via `Schedule.hasConflict(entries)`; show warning in `#hint-<id>`.
+
+## Logic
+
+### State
+
+```js
+state = {
+  dataset: { courses: [] },
+  passed: Set<courseId>,
+  grades: { [courseId]: number },         // optional
+  plan: Set<courseId>,
+  selectedSections: { [courseId]: Section }, // includes slots
+  maxCredits: 22
+}
+```
+
+### Availability vs Blocked
+
+* **Available** if:
+
+  * All `prereqs[]` are in `passed`.
+  * All `coreqs[]` are in `passed` **or** also in the **current plan**.
+* **Blocked** otherwise.
+* **Passed** if `courseId ∈ passed`.
+
+### Electives
+
+Helpers:
+
+```js
+function groupFrom(course){
+  const area = String(course.area||"").toUpperCase();
+  return course.elective_group || (CONFIG.ELECTIVE_FALLBACK_BY_AREA?.[area] || null);
+}
+function electiveTag(course){
+  if (!course?.is_elective) return "";
+  const g = (groupFrom(course) || "GEN").toUpperCase();
+  const gcls = g.toLowerCase(); // gen|basicas|clinicas|premed
+  const label = CONFIG.ELECTIVE_TITLES?.[g] || (g==="GEN" ? "Elective" : `Elective · ${g}`);
+  return `<span class="tag tag-elec ${gcls}">${label}</span>`;
+}
+```
+
+Robustness hotfix in `fetchPensum()` to enforce **term 11 electives**:
+`MED-941, MED-943, MED-956, MED-984, MED-988, MED-963` → `cuatrimestre = "11"`, `is_elective = true`, `elective_group = "BASICAS"`.
+
+### Schedules / conflicts (`lib/schedule.js`)
+
+* A **section** has `slots: [{day:1..6, start:"HH:MM", end:"HH:MM"}]`.
+* `hasConflict(entries)` returns true if any two slots share the same day and overlapping time ranges.
+
+### Next Plan
+
+* `renderPlan()` shows courses in `state.plan`, manages `<select.secSel>` and validates conflicts on change. If conflict → do not accept selection; show hint.
+* `#planInfo` shows `Planned credits: used / maxCredits`.
+* `#btnSuggest` uses a heuristic `Planner.suggestPlan()` (add available courses until `maxCredits`, prioritize those with fewest unmet prereqs, etc.).
+
+### Admin (`?admin=...`)
+
+* Inject panel **only after dataset is loaded** and only if query `?admin` present.
+* Features:
+
+  * **Paste sections** (parse into `slots`).
+  * **Delete/clear** sections per course.
+  * **Export** `medicine-2013-sections.json`.
+  * (Optional) **Change course term** via select 1..18 + “Save”.
+
+## CSS (key bits)
+
+```css
+.list-item{ display:flex; gap:16px; align-items:flex-start; padding:14px 0; border-bottom:1px solid #2a3158; flex-wrap:wrap; }
+.li-left{ flex:1 1 480px; min-width:280px; }
+.li-right{ margin-left:auto; flex:0 0 auto; display:flex; flex-direction:column; gap:8px; align-items:flex-end; min-width:180px; }
+.pill{ padding:4px 10px; border-radius:999px; font-size:12px; background:#1f284b; color:#cbd5ff; border:1px solid #334155; }
+.pill.ok { background:#0f3b2e; color:#86efac; border-color:#10b981; }  /* Available */
+.pill.bad{ background:#3b0f0f; color:#fca5a5; border-color:#ef4444; }  /* Blocked */
+.list-item.is-passed{ opacity:.55; }
+.btn{ padding:8px 14px; border-radius:12px; border:1px solid #334155; background:#1f2545; color:#cbd5ff; cursor:pointer; }
+.btn:hover{ background:#242a56; }
+.btn:disabled{ opacity:.5; cursor:not-allowed; filter:grayscale(40%); }
+.tag{ font-size:12px; font-weight:700; padding:3px 8px; border-radius:999px; margin-left:8px; border:1px solid #2a2f56; display:inline-block; }
+.tag-elec.gen{      background:#2a1f00; color:#ffd166; border-color:#f59e0b; }
+.tag-elec.basicas{  background:#0f3b2e; color:#86efac; border-color:#10b981; }
+.tag-elec.clinicas{ background:#0d2a45; color:#93c5fd; border-color:#3b82f6; }
+```
+
+## PWA
+
+* `manifest.json` under `/pwa/`, icons in `/assets`.
+* `<link rel="manifest" href="pwa/manifest.json">`.
+* `sw.js` at project root:
+
+  * **Install**: precache minimal static assets.
+  * **Fetch**:
+
+    * **network-first** for navigations (HTML) and for `/data/*.json`.
+    * **cache-first** for other static files.
+  * Use `skipWaiting()` and `clients.claim()`.
+
+## Boot sequence
+
+1. `load()` state from `localStorage`.
+2. `fetchPensum()` → `state.dataset` (**includes the term-11 electives hotfix**).
+3. (Admin) `injectAdminPanel()`.
+4. `reloadSections()` (merge `/data/medicine-2013-sections.json` into the courses by `id`).
+5. Fallback `elective_group` by `area` when missing.
+6. `rebuildIndexes()`.
+7. `renderList()`, `renderPlan()`, `setKPIs()`, `showView("list")`.
+
+## Quick console tests
+
+```js
+["MED-941","MED-943","MED-956"].map(id=>{
+  const c = App.state.dataset.courses.find(x=>x.id===id||x.code===id);
+  return [id, c?.cuatrimestre, c?.is_elective, c?.elective_group];
+});
+// Expect: ["11", true, "BASICAS"]
+
+["6","11","15"].forEach(k=>{
+  console.log("Term",k,[...new Set(App.state.dataset.courses
+    .filter(c=>String(c.cuatrimestre)===k && c.is_elective)
+    .map(c=>groupFrom(c) || "NONE"))]);
+});
+// Expect: 6-> GEN, 11-> BASICAS, 15-> CLINICAS (non-empty)
+```
+
+## Code style
+
+* Modern ES modules, pure functions where practical, descriptive names.
+* Prefixed logs: `console.log("[medicina]", ...)`.
+* Minimize dependencies (Vite only is fine).
+
+## Accessibility
+
+* Visible focus, sufficient contrast, labels for inputs/buttons (use `aria-label` when needed).
+
+## Do **not** include
+
+* No backend, no auth.
+* No remote fake APIs; everything must be local assets.
+* Avoid heavy frameworks.
+
+**Final output**: a repo suitable for GitHub Pages or any static host, with `index.html` in root, `/data/` JSON files, `/pwa/manifest.json`, `sw.js` in root, and optional Vite build.
