@@ -1,0 +1,112 @@
+[
+  {
+    "id": "sect-esp095-01",
+    "courseId": "ESP-095",
+    "sectionNumber": "01",
+    "instructor": "Dr. García Pérez",
+    "room": "A-101",
+    "crn": "12001",
+    "schedule": [
+      {"day": "Monday", "startTime": "08:00", "endTime": "10:00"},
+      {"day": "Wednesday", "startTime": "08:00", "endTime": "10:00"}
+    ],
+    "maxCapacity": 30,
+    "currentEnrollment": 25
+  },
+  {
+    "id": "sect-esp095-02",
+    "courseId": "ESP-095",
+    "sectionNumber": "02",
+    "instructor": "Dra. Rodríguez Silva",
+    "room": "B-205",
+    "crn": "12002",
+    "schedule": [
+      {"day": "Tuesday", "startTime": "14:00", "endTime": "16:00"},
+      {"day": "Thursday", "startTime": "14:00", "endTime": "16:00"}
+    ],
+    "maxCapacity": 30,
+    "currentEnrollment": 18
+  },
+  {
+    "id": "sect-ing100-01",
+    "courseId": "ING-100",
+    "sectionNumber": "01",
+    "instructor": "Prof. Johnson",
+    "room": "C-301",
+    "crn": "12003",
+    "schedule": [
+      {"day": "Monday", "startTime": "10:00", "endTime": "12:00"},
+      {"day": "Wednesday", "startTime": "10:00", "endTime": "12:00"}
+    ],
+    "maxCapacity": 25,
+    "currentEnrollment": 22
+  },
+  {
+    "id": "sect-mat095-01",
+    "courseId": "MAT-095",
+    "sectionNumber": "01",
+    "instructor": "Dr. Martínez López",
+    "room": "D-102",
+    "crn": "12004",
+    "schedule": [
+      {"day": "Tuesday", "startTime": "08:00", "endTime": "10:00"},
+      {"day": "Thursday", "startTime": "08:00", "endTime": "10:00"}
+    ],
+    "maxCapacity": 35,
+    "currentEnrollment": 28
+  },
+  {
+    "id": "sect-med100-01",
+    "courseId": "MED-100",
+    "sectionNumber": "01",
+    "instructor": "Dr. Santos Medina",
+    "room": "Lab-Bio-1",
+    "crn": "12005",
+    "schedule": [
+      {"day": "Monday", "startTime": "08:00", "endTime": "10:00"},
+      {"day": "Wednesday", "startTime": "08:00", "endTime": "10:00"}
+    ],
+    "maxCapacity": 20,
+    "currentEnrollment": 19
+  },
+  {
+    "id": "sect-med100-02",
+    "courseId": "MED-100",
+    "sectionNumber": "02",
+    "instructor": "Dra. Fernández Cruz",
+    "room": "Lab-Bio-2",
+    "crn": "12006",
+    "schedule": [
+      {"day": "Tuesday", "startTime": "14:00", "endTime": "16:00"},
+      {"day": "Thursday", "startTime": "14:00", "endTime": "16:00"}
+    ],
+    "maxCapacity": 20,
+    "currentEnrollment": 16
+  },
+  {
+    "id": "sect-med010-01",
+    "courseId": "MED-010",
+    "sectionNumber": "01",
+    "instructor": "Lab Tech. Rivera",
+    "room": "Lab-A",
+    "crn": "12007",
+    "schedule": [
+      {"day": "Monday", "startTime": "08:00", "endTime": "10:00"}
+    ],
+    "maxCapacity": 20,
+    "currentEnrollment": 19
+  },
+  {
+    "id": "sect-med010-02",
+    "courseId": "MED-010",
+    "sectionNumber": "02",
+    "instructor": "Lab Tech. Morales",
+    "room": "Lab-B",
+    "crn": "12008",
+    "schedule": [
+      {"day": "Friday", "startTime": "14:00", "endTime": "16:00"}
+    ],
+    "maxCapacity": 20,
+    "currentEnrollment": 16
+  }
+]
