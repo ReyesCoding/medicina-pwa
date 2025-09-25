@@ -1,10 +1,18 @@
+import { useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { useCourseData } from '@/hooks/use-course-data';
 import { useStudentProgress } from '@/contexts/student-progress-context';
 
 export function ProgressHeader() {
   const { courses, loading } = useCourseData();
-  const { passedCourses } = useStudentProgress();
+  const { passedCourses, updateCourses } = useStudentProgress();
+  
+  // Update courses in context when they're loaded
+  useEffect(() => {
+    if (courses.length > 0) {
+      updateCourses(courses);
+    }
+  }, [courses, updateCourses]);
   
   console.log('[ProgressHeader] Rendering with passedCourses size:', passedCourses.size, 'courses loaded:', courses.length, 'loading:', loading);
   console.log('[ProgressHeader] Passed course IDs:', Array.from(passedCourses));

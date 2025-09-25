@@ -16,6 +16,7 @@ interface StudentProgressContextType {
   getPlannedCourses: () => Set<string>;
   getTotalCredits: (courses: Course[]) => { passed: number; planned: number; total: number };
   calculateGPA: () => number;
+  updateCourses: (courses: Course[]) => void;
 }
 
 const StudentProgressContext = createContext<StudentProgressContextType | undefined>(undefined);
@@ -34,6 +35,7 @@ interface StudentProgressProviderProps {
 
 export function StudentProgressProvider({ children }: StudentProgressProviderProps) {
   const [progress, setProgress] = useState<Map<string, StudentProgress>>(new Map());
+  const [allCourses, setAllCourses] = useState<Course[]>([]);
 
   useEffect(() => {
     // Load from localStorage
@@ -181,21 +183,25 @@ export function StudentProgressProvider({ children }: StudentProgressProviderPro
     return totalCredits > 0 ? totalPoints / totalCredits : 0;
   };
 
-  const getGradePoints = (grade: string): number | null => {
-    const gradeMap: { [key: string]: number } = {
-      'A': 4.0,
-      'B': 3.0,
-      'C': 2.0,
-      'D': 1.0,
-      'F': 0.0
-    };
-    return gradeMap[grade] ?? null;
+  // Update courses when needed (to be called from components that have course data)
+  const updateCourses = (courses: Course[]) => {
+    setAllCourses(courses);
   };
 
   const getCourseCredits = (courseId: string): number => {
-    // This would need access to courses data
-    // For now, return a default value
-    return 3;
+    const course = allCourses.find(c => c.id === courseId);
+    return course?.credits || 3; // fallback to 3 if course not found
+  };
+
+  const getGradePoints = (grade: string): number | null => {
+    const gradeMap: { [key: string]: number } = {
+      'A+': 4.0, 'A': 4.0, 'A-': 3.7,
+      'B+': 3.3, 'B': 3.0, 'B-': 2.7,
+      'C+': 2.3, 'C': 2.0, 'C-': 1.7,
+      'D+': 1.3, 'D': 1.0, 'D-': 0.7,
+      'F': 0.0
+    };
+    return gradeMap[grade] ?? null;
   };
 
   // Reactive values that trigger re-renders when progress changes
@@ -233,7 +239,8 @@ export function StudentProgressProvider({ children }: StudentProgressProviderPro
     getPassedCourses,
     getPlannedCourses,
     getTotalCredits,
-    calculateGPA
+    calculateGPA,
+    updateCourses
   };
 
   return (

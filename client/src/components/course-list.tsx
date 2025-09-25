@@ -6,6 +6,7 @@ import { Course, FilterState, CourseStatus } from '@/types';
 import { useCourseData } from '@/hooks/use-course-data';
 import { useStudentProgress } from '@/contexts/student-progress-context';
 import { useSchedule } from '@/hooks/use-schedule';
+import { GradeInputDialog } from '@/components/grade-input-dialog';
 import { cn } from '@/lib/utils';
 
 interface CourseListProps {
@@ -18,6 +19,9 @@ export function CourseList({ filters, onCourseSelect, selectedCourse }: CourseLi
   const { courses, getAllTerms } = useCourseData();
   const { getCourseStatus, passedCourses, markCoursePassed, removeCourseProgress } = useStudentProgress();
   const { getCoursesInPlan, suggestCoursesForTerm } = useSchedule();
+  
+  const [gradeDialogOpen, setGradeDialogOpen] = useState(false);
+  const [courseToGrade, setCourseToGrade] = useState<Course | null>(null);
 
   const plannedCourses = getCoursesInPlan();
   const terms = getAllTerms();
@@ -98,9 +102,22 @@ export function CourseList({ filters, onCourseSelect, selectedCourse }: CourseLi
     );
   };
 
-  const handleMarkPassed = (courseId: string, e: React.MouseEvent) => {
+  const handleMarkPassed = (course: Course, e: React.MouseEvent) => {
     e.stopPropagation();
-    markCoursePassed(courseId);
+    setCourseToGrade(course);
+    setGradeDialogOpen(true);
+  };
+
+  const handleGradeConfirm = (grade: string) => {
+    if (courseToGrade) {
+      markCoursePassed(courseToGrade.id, grade);
+      setCourseToGrade(null);
+    }
+  };
+
+  const handleGradeCancel = () => {
+    setCourseToGrade(null);
+    setGradeDialogOpen(false);
   };
 
   const handleUndoPassed = (courseId: string, e: React.MouseEvent) => {
@@ -197,7 +214,7 @@ export function CourseList({ filters, onCourseSelect, selectedCourse }: CourseLi
                             size="sm" 
                             variant="secondary"
                             disabled={isBlocked}
-                            onClick={(e) => handleMarkPassed(course.id, e)}
+                            onClick={(e) => handleMarkPassed(course, e)}
                             data-testid={`mark-passed-${course.id}`}
                           >
                             Mark as passed
@@ -221,6 +238,13 @@ export function CourseList({ filters, onCourseSelect, selectedCourse }: CourseLi
           ))}
         </div>
       </ScrollArea>
+      
+      <GradeInputDialog
+        open={gradeDialogOpen}
+        onClose={handleGradeCancel}
+        onConfirm={handleGradeConfirm}
+        courseName={courseToGrade ? `${courseToGrade.id} - ${courseToGrade.name}` : ''}
+      />
     </div>
   );
 }
