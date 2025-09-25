@@ -219,7 +219,7 @@ export function CourseList({ filters, onCourseSelect, selectedCourse }: CourseLi
               </div>
               
               {/* Course Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {group.courses.map((course: Course) => {
                   const status = getCourseStatus(course, passedCourses);
                   const isPassed = status === 'passed';
@@ -241,20 +241,22 @@ export function CourseList({ filters, onCourseSelect, selectedCourse }: CourseLi
                         data-testid={`course-item-${course.id}`}
                       >
                         <CardHeader className="pb-3">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="space-y-1 flex-1 min-w-0">
-                              <CardTitle className="text-sm font-semibold text-primary truncate">
+                          <div className="space-y-2">
+                            <div className="flex items-start justify-between gap-2">
+                              <CardTitle className="text-sm font-semibold text-primary truncate flex-1 min-w-0">
                                 {course.id}
                               </CardTitle>
-                              <p className="text-xs text-muted-foreground line-clamp-2 leading-tight">
+                              <div className="flex-shrink-0">
+                                {getStatusBadge(course)}
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm text-foreground font-medium line-clamp-3 leading-tight break-words">
                                 {course.name}
                               </p>
-                            </div>
-                            <div className="flex-shrink-0">
-                              {getStatusBadge(course)}
+                              {getElectiveTag(course)}
                             </div>
                           </div>
-                          {getElectiveTag(course)}
                         </CardHeader>
                         
                         <CardContent className="pt-0 space-y-3">
