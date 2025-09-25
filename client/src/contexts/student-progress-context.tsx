@@ -1,9 +1,38 @@
-import { useState, useEffect, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import { StudentProgress, CourseStatus, Course } from '@/types';
 
 const STORAGE_KEY = 'medicina-student-progress';
 
+interface StudentProgressContextType {
+  progress: Map<string, StudentProgress>;
+  passedCourses: Set<string>;
+  plannedCourses: Set<string>;
+  markCoursePassed: (courseId: string, grade?: string) => void;
+  markCourseInProgress: (courseId: string, sectionId?: string) => void;
+  markCoursePlanned: (courseId: string, sectionId?: string) => void;
+  removeCourseProgress: (courseId: string) => void;
+  getCourseStatus: (course: Course, passedCourses: Set<string>) => CourseStatus;
+  getPassedCourses: () => Set<string>;
+  getPlannedCourses: () => Set<string>;
+  getTotalCredits: (courses: Course[]) => { passed: number; planned: number; total: number };
+  calculateGPA: () => number;
+}
+
+const StudentProgressContext = createContext<StudentProgressContextType | undefined>(undefined);
+
 export function useStudentProgress() {
+  const context = useContext(StudentProgressContext);
+  if (context === undefined) {
+    throw new Error('useStudentProgress must be used within a StudentProgressProvider');
+  }
+  return context;
+}
+
+interface StudentProgressProviderProps {
+  children: ReactNode;
+}
+
+export function StudentProgressProvider({ children }: StudentProgressProviderProps) {
   const [progress, setProgress] = useState<Map<string, StudentProgress>>(new Map());
 
   useEffect(() => {
@@ -192,7 +221,7 @@ export function useStudentProgress() {
     return planned;
   }, [progress]);
 
-  return {
+  const value = {
     progress,
     passedCourses,
     plannedCourses,
@@ -206,4 +235,10 @@ export function useStudentProgress() {
     getTotalCredits,
     calculateGPA
   };
+
+  return (
+    <StudentProgressContext.Provider value={value}>
+      {children}
+    </StudentProgressContext.Provider>
+  );
 }

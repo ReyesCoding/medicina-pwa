@@ -6,7 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { useCourseData } from '@/hooks/use-course-data';
 import { useSchedule } from '@/hooks/use-schedule';
-import { useStudentProgress } from '@/hooks/use-student-progress';
+import { useStudentProgress } from '@/contexts/student-progress-context';
 import { X, Plus } from 'lucide-react';
 
 interface PlanModalProps {

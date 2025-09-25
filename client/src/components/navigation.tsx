@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { FilterState, CourseStatus } from '@/types';
 import { useCourseData } from '@/hooks/use-course-data';
-import { useStudentProgress } from '@/hooks/use-student-progress';
+import { useStudentProgress } from '@/contexts/student-progress-context';
 import { List, ClipboardList, TrendingUp } from 'lucide-react';
 
 interface NavigationProps {

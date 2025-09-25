@@ -4,7 +4,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Course, Section } from '@/types';
 import { useCourseData } from '@/hooks/use-course-data';
-import { useStudentProgress } from '@/hooks/use-student-progress';
+import { useStudentProgress } from '@/contexts/student-progress-context';
 import { useSchedule } from '@/hooks/use-schedule';
 
 interface CourseDetailProps {
