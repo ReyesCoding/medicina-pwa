@@ -45,11 +45,30 @@ export function Dashboard() {
         />
         
         <main className="flex-1 overflow-auto">
-          <CourseList 
-            filters={filters}
-            onCourseSelect={handleCourseSelect}
-            selectedCourse={selectedCourse}
-          />
+          <div className="h-full flex">
+            {/* Course List - 2/3 width */}
+            <div className="w-2/3 border-r border-border">
+              <CourseList 
+                filters={filters}
+                onCourseSelect={handleCourseSelect}
+                selectedCourse={selectedCourse}
+              />
+            </div>
+            
+            {/* Course Detail Sidebar - 1/3 width */}
+            <div className="w-1/3 bg-background">
+              {selectedCourse ? (
+                <CourseDetail course={selectedCourse} />
+              ) : (
+                <div className="p-6 h-full flex items-center justify-center text-center">
+                  <div className="text-muted-foreground">
+                    <div className="text-lg font-medium mb-2">Selecciona una materia</div>
+                    <p className="text-sm">Haz clic en cualquier materia para ver sus detalles</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </main>
       </div>
 

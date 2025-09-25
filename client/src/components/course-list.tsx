@@ -289,12 +289,6 @@ export function CourseList({ filters, onCourseSelect, selectedCourse }: CourseLi
                         </CardContent>
                       </Card>
                       
-                      {/* Inline Course Details */}
-                      {isSelected && (
-                        <div className="mt-4 p-4 bg-accent/50 border border-border rounded-lg">
-                          <CourseDetail course={course} />
-                        </div>
-                      )}
                     </div>
                   );
                 })}

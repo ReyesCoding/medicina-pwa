@@ -21,7 +21,7 @@ export function ProgressHeader() {
   if (loading || courses.length === 0) {
     console.log('[ProgressHeader] Courses not loaded yet, showing default state');
     return (
-      <header className="sticky-header mobile-sticky-header bg-card border-b border-border px-6 py-4">
+      <header className="bg-card border-b border-border px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Medicine Curriculum Planner</h1>
@@ -64,7 +64,7 @@ export function ProgressHeader() {
   console.log('[ProgressHeader] FINAL VALUES - passedCount:', passedCount, 'totalCourses:', totalCourses, 'passedCredits:', passedCredits, 'totalCredits:', totalCredits, 'progressPercentage:', progressPercentage);
 
   return (
-    <header className="sticky-header mobile-sticky-header bg-card border-b border-border px-6 py-4">
+    <header className="bg-card border-b border-border px-6 py-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Medicine Curriculum Planner</h1>

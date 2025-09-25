@@ -41,13 +41,38 @@ export function useCourseData() {
     return courses.filter(course => course.isElective && course.electiveType === type);
   };
 
+  const getTermName = (termNumber: number): string => {
+    const termNames: { [key: number]: string } = {
+      1: "PRIMER CUATRIMESTRE",
+      2: "SEGUNDO CUATRIMESTRE", 
+      3: "TERCER CUATRIMESTRE",
+      4: "CUARTO CUATRIMESTRE",
+      5: "QUINTO CUATRIMESTRE",
+      6: "SEXTO CUATRIMESTRE",
+      7: "SÉPTIMO CUATRIMESTRE",
+      8: "OCTAVO CUATRIMESTRE",
+      9: "NOVENO CUATRIMESTRE",
+      10: "DÉCIMO CUATRIMESTRE",
+      11: "DÉCIMO PRIMER CUATRIMESTRE",
+      12: "DÉCIMO SEGUNDO CUATRIMESTRE",
+      13: "DÉCIMO TERCER CUATRIMESTRE",
+      14: "DÉCIMO CUARTO CUATRIMESTRE",
+      15: "DÉCIMO QUINTO CUATRIMESTRE",
+      16: "DÉCIMO SEXTO CUATRIMESTRE",
+      17: "DÉCIMO SÉPTIMO CUATRIMESTRE",
+      18: "DÉCIMO OCTAVO CUATRIMESTRE",
+      19: "PROYECTO DE GRADO"
+    };
+    return termNames[termNumber] || `CUATRIMESTRE ${termNumber}`;
+  };
+
   const getAllTerms = () => {
     const termMap = new Map();
     courses.forEach(course => {
       if (!termMap.has(course.term)) {
         termMap.set(course.term, {
           term: course.term,
-          name: `Term ${course.term}`,
+          name: getTermName(course.term),
           block: course.block,
           credits: 0,
           courseCount: 0
