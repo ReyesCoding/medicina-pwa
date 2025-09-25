@@ -17,16 +17,7 @@ export function CourseDetail({ course }: CourseDetailProps) {
   const { detectScheduleConflicts, updateSectionSelection, coursePlan } = useSchedule();
 
   if (!course) {
-    return (
-      <div className="w-1/3 bg-card border-l border-border">
-        <div className="p-6 border-b border-border">
-          <h2 className="text-lg font-semibold text-foreground">Course Details</h2>
-        </div>
-        <div className="p-6 flex items-center justify-center h-96">
-          <p className="text-muted-foreground">Select a course to view details</p>
-        </div>
-      </div>
-    );
+    return null; // Return nothing when no course is selected (inline mode)
   }
 
   const passedCourses = getPassedCourses();
@@ -51,13 +42,12 @@ export function CourseDetail({ course }: CourseDetailProps) {
   const getElectiveTag = () => {
     if (!course.isElective) return null;
     
-    const tagClass = course.electiveType === 'GEN' ? 'tag-elec gen' : 
-                    course.electiveType === 'BASICAS' ? 'tag-elec basicas' :
-                    'tag-elec clinicas';
+    const tagClass = course.electiveType === 'general' ? 'tag-elec gen' : 'tag-elec professional';
+    const displayText = course.electiveType === 'general' ? 'General' : 'Profesionalizante';
     
     return (
       <span className={`tag ${tagClass}`}>
-        Elective • {course.electiveType}
+        Electiva • {displayText}
       </span>
     );
   };
@@ -89,160 +79,123 @@ export function CourseDetail({ course }: CourseDetailProps) {
   const courseConflicts = getCourseConflicts();
 
   return (
-    <div className="w-1/3 bg-card border-l border-border">
-      <div className="p-6 border-b border-border">
-        <h2 className="text-lg font-semibold text-foreground">Course Details</h2>
+    <div className="space-y-4">
+      {/* Course Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-foreground mb-1">
+            {course.id} - {course.name}
+          </h3>
+          <div className="text-sm text-muted-foreground mb-2">
+            {course.block} • {course.credits} créditos • HT {course.theoreticalHours} • HP {course.practicalHours}
+          </div>
+          <p className="text-sm text-muted-foreground line-clamp-3">
+            {course.description || 'Sin descripción disponible.'}
+          </p>
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          {getStatusBadge()}
+          {getElectiveTag()}
+        </div>
       </div>
       
-      <ScrollArea className="flex-1 p-6">
-        <div className="space-y-6">
-          <div>
-            <div className="title-line flex items-center gap-2 mb-2">
-              <span className="text-xl font-bold text-foreground">{course.id}</span>
-              <span className="text-muted-foreground">—</span>
-              <span className="text-xl text-foreground">{course.name}</span>
-              {getElectiveTag()}
-            </div>
-            <div className="text-muted-foreground">
-              {course.block} • {course.credits} credits • HT {course.theoreticalHours} • HP {course.practicalHours}
-            </div>
-          </div>
-          
-          <div>
-            <div className="text-sm font-medium text-foreground mb-2">Status</div>
-            {getStatusBadge()}
-          </div>
-          
-          <div>
-            <div className="text-sm font-medium text-foreground mb-2">Prerequisites</div>
-            <div className="flex flex-wrap gap-2">
-              {course.prerequisites.length > 0 ? (
-                course.prerequisites.map(prereq => {
-                  const prereqCourse = getCourseById(prereq);
-                  return (
-                    <span key={prereq} className="pill" data-testid={`prereq-${prereq}`}>
-                      {prereq} {prereqCourse && `(${prereqCourse.name})`}
-                    </span>
-                  );
-                })
-              ) : (
-                <span className="pill">—</span>
-              )}
-            </div>
-            {course.prerequisites.length > 0 && (
-              <div className="mt-2 text-xs text-muted-foreground">
-                You must complete these courses before taking this one.
-              </div>
+      {/* Prerequisites & Corequisites */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <div>
+          <h4 className="font-medium text-foreground mb-2">Prerrequisitos</h4>
+          <div className="flex flex-wrap gap-2">
+            {course.prerequisites.length > 0 ? (
+              course.prerequisites.map(prereq => {
+                const prereqCourse = getCourseById(prereq);
+                return (
+                  <Badge key={prereq} variant="outline" className="text-xs" data-testid={`prereq-${prereq}`}>
+                    {prereq} {prereqCourse && `(${prereqCourse.name})`}
+                  </Badge>
+                );
+              })
+            ) : (
+              <span className="text-sm text-muted-foreground">Ninguno</span>
             )}
           </div>
-          
-          <div>
-            <div className="text-sm font-medium text-foreground mb-2">Corequisites</div>
-            <div className="flex flex-wrap gap-2">
-              {course.corequisites.length > 0 ? (
-                course.corequisites.map(coreq => {
-                  const coreqCourse = getCourseById(coreq);
-                  return (
-                    <span key={coreq} className="pill" data-testid={`coreq-${coreq}`}>
-                      {coreq} {coreqCourse && `(${coreqCourse.name})`}
-                    </span>
-                  );
-                })
-              ) : (
-                <span className="pill">—</span>
-              )}
-            </div>
-            {course.corequisites.length > 0 && (
-              <div className="mt-2 text-xs text-muted-foreground">
-                You must take these courses at the same time.
-              </div>
-            )}
-          </div>
-          
-          <div>
-            <div className="text-sm font-medium text-foreground mb-2">Course Description</div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {course.description || 'No description available.'}
+          {course.prerequisites.length > 0 && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Debes completar estas materias antes de tomar esta.
             </p>
+          )}
+        </div>
+        
+        <div>
+          <h4 className="font-medium text-foreground mb-2">Correquisitos</h4>
+          <div className="flex flex-wrap gap-2">
+            {course.corequisites.length > 0 ? (
+              course.corequisites.map(coreq => {
+                const coreqCourse = getCourseById(coreq);
+                return (
+                  <Badge key={coreq} variant="outline" className="text-xs" data-testid={`coreq-${coreq}`}>
+                    {coreq} {coreqCourse && `(${coreqCourse.name})`}
+                  </Badge>
+                );
+              })
+            ) : (
+              <span className="text-sm text-muted-foreground">Ninguno</span>
+            )}
+          </div>
+          {course.corequisites.length > 0 && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Debes tomar estas materias al mismo tiempo.
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Sections - if available */}
+      {sections.length > 0 && (
+        <div className="space-y-3 border-t border-border pt-4">
+          <h4 className="font-medium text-foreground">Secciones Disponibles</h4>
+          <div className="space-y-2">
+            {sections.map(section => (
+              <div key={section.id} className="p-3 bg-muted/50 rounded-md border border-border">
+                <div className="flex justify-between items-start mb-1">
+                  <div className="font-medium text-sm text-foreground">
+                    Sección {section.sectionNumber}
+                  </div>
+                  <span className="text-xs text-muted-foreground">CRN: {section.crn}</span>
+                </div>
+                <div className="text-xs text-muted-foreground">{section.instructor} • {section.room}</div>
+                <div className="text-xs text-muted-foreground">
+                  {formatSchedule(section.schedule)}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Inscritos: {section.currentEnrollment}/{section.maxCapacity}
+                </div>
+              </div>
+            ))}
           </div>
           
-          {sections.length > 0 && (
-            <div>
-              <div className="text-sm font-medium text-foreground mb-2">Available Sections</div>
-              <div className="space-y-2">
-                {sections.map(section => (
-                  <div key={section.id} className="p-3 bg-muted rounded-md border border-border">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="font-medium text-sm text-foreground">
-                        Section {section.sectionNumber}
-                      </div>
-                      <span className="text-xs text-muted-foreground">CRN: {section.crn}</span>
-                    </div>
-                    <div className="text-xs text-muted-foreground">{section.instructor} • {section.room}</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {formatSchedule(section.schedule)}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Enrolled: {section.currentEnrollment}/{section.maxCapacity}
-                    </div>
-                  </div>
-                ))}
-              </div>
+          {selectedPlan && (
+            <div className="space-y-2">
+              <Select value={selectedSectionId || ""} onValueChange={handleSectionChange}>
+                <SelectTrigger data-testid="section-select">
+                  <SelectValue placeholder="Selecciona una sección..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {sections.map(section => (
+                    <SelectItem key={section.id} value={section.id}>
+                      Sec {section.sectionNumber} ({section.instructor}) {formatSchedule(section.schedule)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               
-              {selectedPlan && (
-                <div className="mt-4">
-                  <div className="text-sm font-medium text-foreground mb-2">Select Section</div>
-                  <Select value={selectedSectionId || ""} onValueChange={handleSectionChange}>
-                    <SelectTrigger data-testid="section-select">
-                      <SelectValue placeholder="Choose a section..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {sections.map(section => (
-                        <SelectItem key={section.id} value={section.id}>
-                          Sec {section.sectionNumber} ({section.instructor}) {formatSchedule(section.schedule)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  
-                  {courseConflicts.length > 0 && selectedSectionId && (
-                    <div className="conflict-warning mt-2" data-testid="conflict-warning">
-                      ⚠️ Schedule conflict detected with other selected courses
-                    </div>
-                  )}
+              {courseConflicts.length > 0 && selectedSectionId && (
+                <div className="p-2 bg-destructive/10 border border-destructive/20 rounded-md" data-testid="conflict-warning">
+                  <p className="text-sm text-destructive">⚠️ Conflicto de horario detectado</p>
                 </div>
               )}
             </div>
           )}
-          
-          <div className="pt-4 border-t border-border">
-            {status !== 'passed' ? (
-              <Button 
-                className="w-full" 
-                disabled={status === 'blocked'}
-                onClick={handleMarkPassed}
-                data-testid="mark-passed-detail"
-              >
-                Mark as passed
-              </Button>
-            ) : (
-              <Button 
-                className="w-full" 
-                variant="destructive"
-                onClick={handleUndoPassed}
-                data-testid="undo-passed-detail"
-              >
-                Undo passed
-              </Button>
-            )}
-            {status === 'blocked' && (
-              <div className="text-xs text-muted-foreground mt-2 text-center">
-                Complete prerequisites to enable this action
-              </div>
-            )}
-          </div>
         </div>
-      </ScrollArea>
+      )}
     </div>
   );
 }

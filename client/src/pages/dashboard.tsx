@@ -44,16 +44,12 @@ export function Dashboard() {
           onShowPlanModal={handleShowPlanModal}
         />
         
-        <main className="flex-1 flex">
-          <div className="w-2/3 border-r border-border">
-            <CourseList 
-              filters={filters}
-              onCourseSelect={handleCourseSelect}
-              selectedCourse={selectedCourse}
-            />
-          </div>
-          
-          <CourseDetail course={selectedCourse} />
+        <main className="flex-1">
+          <CourseList 
+            filters={filters}
+            onCourseSelect={handleCourseSelect}
+            selectedCourse={selectedCourse}
+          />
         </main>
       </div>
 
