@@ -241,16 +241,18 @@ export function CourseList({ filters, onCourseSelect, selectedCourse }: CourseLi
                         data-testid={`course-item-${course.id}`}
                       >
                         <CardHeader className="pb-3">
-                          <div className="flex items-start justify-between">
-                            <div className="space-y-1">
-                              <CardTitle className="text-sm font-semibold text-primary">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="space-y-1 flex-1 min-w-0">
+                              <CardTitle className="text-sm font-semibold text-primary truncate">
                                 {course.id}
                               </CardTitle>
-                              <p className="text-xs text-muted-foreground line-clamp-2">
+                              <p className="text-xs text-muted-foreground line-clamp-2 leading-tight">
                                 {course.name}
                               </p>
                             </div>
-                            {getStatusBadge(course)}
+                            <div className="flex-shrink-0">
+                              {getStatusBadge(course)}
+                            </div>
                           </div>
                           {getElectiveTag(course)}
                         </CardHeader>
@@ -270,9 +272,9 @@ export function CourseList({ filters, onCourseSelect, selectedCourse }: CourseLi
                                 disabled={isBlocked}
                                 onClick={(e) => handleMarkPassed(course, e)}
                                 data-testid={`mark-passed-${course.id}`}
-                                className="w-full text-xs"
+                                className="w-full text-xs px-2 py-1.5 h-8"
                               >
-                                Marcar como Aprobada
+                                ✓ Aprobar
                               </Button>
                             ) : (
                               <Button 
@@ -280,9 +282,9 @@ export function CourseList({ filters, onCourseSelect, selectedCourse }: CourseLi
                                 variant="destructive"
                                 onClick={(e) => handleUndoPassed(course.id, e)}
                                 data-testid={`undo-passed-${course.id}`}
-                                className="w-full text-xs"
+                                className="w-full text-xs px-2 py-1.5 h-8"
                               >
-                                Deshacer
+                                ✗ Quitar
                               </Button>
                             )}
                           </div>
