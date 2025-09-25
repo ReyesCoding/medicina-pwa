@@ -16,10 +16,9 @@ interface CourseListProps {
 
 export function CourseList({ filters, onCourseSelect, selectedCourse }: CourseListProps) {
   const { courses, getAllTerms } = useCourseData();
-  const { getCourseStatus, getPassedCourses, markCoursePassed, removeCourseProgress } = useStudentProgress();
+  const { getCourseStatus, passedCourses, markCoursePassed, removeCourseProgress } = useStudentProgress();
   const { getCoursesInPlan, suggestCoursesForTerm } = useSchedule();
 
-  const passedCourses = getPassedCourses();
   const plannedCourses = getCoursesInPlan();
   const terms = getAllTerms();
 
@@ -51,7 +50,7 @@ export function CourseList({ filters, onCourseSelect, selectedCourse }: CourseLi
       
       return true;
     });
-  }, [courses, filters, passedCourses, plannedCourses, getCourseStatus]);
+  }, [courses, filters, passedCourses, plannedCourses]);
 
   const groupedCourses = useMemo(() => {
     const groups = new Map();

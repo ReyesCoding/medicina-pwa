@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { StudentProgress, CourseStatus, Course } from '@/types';
 
 const STORAGE_KEY = 'medicina-student-progress';
@@ -21,12 +21,15 @@ export function useStudentProgress() {
   }, []);
 
   const saveProgress = (newProgress: Map<string, StudentProgress>) => {
+    console.log('[saveProgress] Updating progress state, size:', newProgress.size);
     setProgress(newProgress);
     const data = Object.fromEntries(newProgress);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    console.log('[saveProgress] localStorage updated:', Object.keys(data));
   };
 
   const markCoursePassed = (courseId: string, grade?: string) => {
+    console.log('[markCoursePassed] Called for:', courseId);
     const newProgress = new Map(progress);
     newProgress.set(courseId, {
       courseId,
@@ -34,6 +37,7 @@ export function useStudentProgress() {
       grade,
       completedAt: new Date().toISOString()
     });
+    console.log('[markCoursePassed] New progress size:', newProgress.size);
     saveProgress(newProgress);
   };
 
@@ -64,9 +68,8 @@ export function useStudentProgress() {
   };
 
   const getCourseStatus = (course: Course, passedCourses: Set<string>): CourseStatus => {
-    const courseProgress = progress.get(course.id);
-    
-    if (courseProgress?.status === 'passed') {
+    // Use the passed Set directly instead of accessing progress Map
+    if (passedCourses.has(course.id)) {
       return 'passed';
     }
 
@@ -166,8 +169,33 @@ export function useStudentProgress() {
     return 3;
   };
 
+  // Reactive values that trigger re-renders when progress changes
+  const passedCourses = useMemo(() => {
+    console.log('[passedCourses useMemo] Recalculating with progress size:', progress.size);
+    const passed = new Set<string>();
+    progress.forEach((prog, courseId) => {
+      if (prog.status === 'passed') {
+        passed.add(courseId);
+      }
+    });
+    console.log('[passedCourses useMemo] Passed courses:', Array.from(passed));
+    return passed;
+  }, [progress]);
+
+  const plannedCourses = useMemo(() => {
+    const planned = new Set<string>();
+    progress.forEach((prog, courseId) => {
+      if (prog.status === 'planned' || prog.status === 'in_progress') {
+        planned.add(courseId);
+      }
+    });
+    return planned;
+  }, [progress]);
+
   return {
     progress,
+    passedCourses,
+    plannedCourses,
     markCoursePassed,
     markCourseInProgress,
     markCoursePlanned,

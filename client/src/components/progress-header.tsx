@@ -4,11 +4,15 @@ import { useStudentProgress } from '@/hooks/use-student-progress';
 
 export function ProgressHeader() {
   const { courses } = useCourseData();
-  const { getTotalCredits, getPassedCourses } = useStudentProgress();
+  const { getTotalCredits, passedCourses } = useStudentProgress();
+  
+  console.log('[ProgressHeader] Rendering with passedCourses size:', passedCourses.size);
   
   const totalCredits = getTotalCredits(courses);
-  const passedCount = getPassedCourses().size;
+  const passedCount = passedCourses.size;
   const progressPercentage = Math.round((totalCredits.passed / totalCredits.total) * 100);
+  
+  console.log('[ProgressHeader] passedCount:', passedCount, 'progressPercentage:', progressPercentage);
 
   return (
     <header className="bg-card border-b border-border px-6 py-4">
