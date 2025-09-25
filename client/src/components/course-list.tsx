@@ -188,14 +188,13 @@ export function CourseList({ filters, onCourseSelect, selectedCourse }: CourseLi
         </div>
       </div>
       
-      {/* Scrollable Course Grid */}
-      <ScrollArea className="flex-1">
-        <div className="p-6 space-y-8">
+      {/* Course Grid */}
+      <div className="flex-1 p-6 space-y-8">
           {groupedCourses.map(group => (
             <div key={`${group.term}-${group.isElective ? 'elective' : 'regular'}`} className="space-y-6">
               {/* Sticky Semester Header */}
               <div className={cn(
-                "sticky top-0 z-10 py-4 px-6 -mx-6 bg-background/95 backdrop-blur-sm border-b border-border",
+                "sticky-header mobile-sticky-header py-4 px-6 -mx-6 bg-background/95 backdrop-blur-sm border-b border-border",
                 group.isElective && "bg-orange-50/80 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800"
               )}>
                 <div className="flex items-center gap-3">
@@ -302,8 +301,7 @@ export function CourseList({ filters, onCourseSelect, selectedCourse }: CourseLi
               </div>
             </div>
           ))}
-        </div>
-      </ScrollArea>
+      </div>
       
       <GradeInputDialog
         open={gradeDialogOpen}

@@ -42,6 +42,29 @@
   --info-foreground: hsl(205, 96%, 53%);
 }
 
+/* Mobile sticky header fixes */
+@supports (-webkit-overflow-scrolling: touch) {
+  .mobile-sticky-header {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+}
+
+/* Ensure sticky headers work in scrollable containers */
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
 .list-item {
   display: flex;
   gap: 16px;

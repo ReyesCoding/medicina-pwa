@@ -32,10 +32,10 @@ export function Dashboard() {
   };
 
   return (
-    <div className="h-screen bg-background text-foreground font-sans antialiased">
+    <div className="min-h-screen bg-background text-foreground font-sans antialiased">
       <ProgressHeader />
       
-      <div className="flex h-[calc(100vh-80px)]">
+      <div className="flex min-h-[calc(100vh-80px)]">
         <Navigation 
           filters={filters}
           onFiltersChange={setFilters}
@@ -44,7 +44,7 @@ export function Dashboard() {
           onShowPlanModal={handleShowPlanModal}
         />
         
-        <main className="flex-1">
+        <main className="flex-1 overflow-auto">
           <CourseList 
             filters={filters}
             onCourseSelect={handleCourseSelect}
