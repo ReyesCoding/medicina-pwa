@@ -104,14 +104,17 @@ export function StudentProgressProvider({ children }: StudentProgressProviderPro
       return 'passed';
     }
 
-    // Check prerequisites
-    for (const prereq of course.prerequisites) {
-      if (!passedCourses.has(prereq)) {
-        return 'blocked';
+    // Check prerequisites - if prerequisites array is empty, course is not blocked by prereqs
+    if (course.prerequisites.length > 0) {
+      for (const prereq of course.prerequisites) {
+        if (!passedCourses.has(prereq)) {
+          return 'blocked';
+        }
       }
     }
 
-    // Check corequisites (if any are passed, course is available)
+    // Check corequisites - these should be taken together, not separately
+    // If course has corequisites, at least one should be planned, in progress, or passed
     if (course.corequisites.length > 0) {
       const hasPassedCoreq = course.corequisites.some(coreq => passedCourses.has(coreq));
       const hasPlannedCoreq = course.corequisites.some(coreq => {
@@ -119,12 +122,63 @@ export function StudentProgressProvider({ children }: StudentProgressProviderPro
         return coreqProgress?.status === 'planned' || coreqProgress?.status === 'in_progress';
       });
       
+      // For corequisites, we should allow course if:
+      // 1. Any corequisite is already passed/planned, OR
+      // 2. The course itself is being planned (handled elsewhere)
       if (!hasPassedCoreq && !hasPlannedCoreq) {
         return 'blocked';
       }
     }
 
+    // Check elective availability based on student's progress
+    if (course.isElective) {
+      const currentTermProgress = calculateCurrentTermProgress(passedCourses, allCourses);
+      
+      // General electives available after completing term 6
+      if (course.electiveType === 'general' && currentTermProgress < 6) {
+        return 'blocked';
+      }
+      
+      // Professional electives for basic sciences available after term 11  
+      if (course.electiveType === 'professional' && course.term <= 11 && currentTermProgress < 11) {
+        return 'blocked';
+      }
+      
+      // Professional electives for clinical sciences available after term 15
+      if (course.electiveType === 'professional' && course.term > 11 && currentTermProgress < 15) {
+        return 'blocked';
+      }
+    }
+
     return 'available';
+  };
+
+  // Helper function to determine student's current term progress based on passed courses
+  const calculateCurrentTermProgress = (passedCourses: Set<string>, courses: Course[]): number => {
+    if (courses.length === 0) return 0;
+    
+    // Find the highest term where the student has passed all required courses
+    let currentTermProgress = 0;
+    
+    for (let term = 1; term <= 18; term++) {
+      const termRequiredCourses = courses.filter(course => 
+        course.term === term && !course.isElective
+      );
+      
+      const passedTermCourses = termRequiredCourses.filter(course => 
+        passedCourses.has(course.id)
+      );
+      
+      // If student has passed at least 75% of required courses in this term, consider it completed
+      if (termRequiredCourses.length > 0 && 
+          passedTermCourses.length / termRequiredCourses.length >= 0.75) {
+        currentTermProgress = term;
+      } else {
+        break; // Stop at first incomplete term
+      }
+    }
+    
+    return currentTermProgress;
   };
 
   const getPassedCourses = (): Set<string> => {

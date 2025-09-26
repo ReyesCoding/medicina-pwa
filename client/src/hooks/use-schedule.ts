@@ -115,23 +115,52 @@ export function useSchedule() {
 
   const suggestCoursesForTerm = (
     term: number, 
-    availableCourses: any[], 
+    availableCourses: any[],
+    passedCourses: Set<string>,
+    getCourseStatus: (course: any, passedCourses: Set<string>) => string,
     maxCredits = 22
   ): string[] => {
-    // Simple suggestion algorithm
     const currentCredits = getPlannedTermCredits(term, availableCourses);
     const remainingCredits = maxCredits - currentCredits;
     
     const suggestions: string[] = [];
     let creditsToAdd = 0;
     
-    // Prioritize required courses for the term
-    const termCourses = availableCourses
+    // Filter to only available courses not already in plan
+    const eligibleCourses = availableCourses
+      .filter(course => getCourseStatus(course, passedCourses) === 'available')
+      .filter(course => !coursePlan.some(plan => plan.courseId === course.id));
+    
+    // 1. Prioritize required courses for the exact term
+    const requiredTermCourses = eligibleCourses
       .filter(course => course.term === term && !course.isElective)
-      .filter(course => !coursePlan.some(plan => plan.courseId === course.id))
-      .sort((a, b) => a.credits - b.credits); // Start with lower credit courses
+      .sort((a, b) => a.credits - b.credits);
 
-    for (const course of termCourses) {
+    for (const course of requiredTermCourses) {
+      if (creditsToAdd + course.credits <= remainingCredits) {
+        suggestions.push(course.id);
+        creditsToAdd += course.credits;
+      }
+    }
+
+    // 2. Add electives that are available for this term
+    const availableElectives = eligibleCourses
+      .filter(course => course.isElective && isElectiveAvailableForTerm(course, term))
+      .sort((a, b) => a.credits - b.credits);
+
+    for (const course of availableElectives) {
+      if (creditsToAdd + course.credits <= remainingCredits) {
+        suggestions.push(course.id);
+        creditsToAdd += course.credits;
+      }
+    }
+
+    // 3. Add other available required courses from earlier terms (catch-up)
+    const earlierRequiredCourses = eligibleCourses
+      .filter(course => course.term < term && !course.isElective)
+      .sort((a, b) => a.credits - b.credits);
+
+    for (const course of earlierRequiredCourses) {
       if (creditsToAdd + course.credits <= remainingCredits) {
         suggestions.push(course.id);
         creditsToAdd += course.credits;
@@ -139,6 +168,28 @@ export function useSchedule() {
     }
 
     return suggestions;
+  };
+
+  // Helper function to determine if an elective is available for a specific term
+  const isElectiveAvailableForTerm = (course: any, currentTerm: number): boolean => {
+    if (!course.isElective) return false;
+    
+    // General electives are available after term 6
+    if (course.electiveType === 'general' && currentTerm >= 6) {
+      return true;
+    }
+    
+    // Professional electives for basic sciences (available after term 11)
+    if (course.electiveType === 'professional' && course.term <= 11 && currentTerm >= 11) {
+      return true;
+    }
+    
+    // Professional electives for clinical sciences (available after term 15)  
+    if (course.electiveType === 'professional' && course.term > 11 && currentTerm >= 15) {
+      return true;
+    }
+    
+    return false;
   };
 
   return {
@@ -149,6 +200,7 @@ export function useSchedule() {
     detectScheduleConflicts,
     getCoursesInPlan,
     getPlannedTermCredits,
-    suggestCoursesForTerm
+    suggestCoursesForTerm,
+    isElectiveAvailableForTerm
   };
 }

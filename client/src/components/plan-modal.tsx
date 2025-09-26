@@ -58,7 +58,7 @@ export function PlanModal({ open, onClose }: PlanModalProps) {
   };
 
   const handleSuggestCourses = () => {
-    const suggestions = suggestCoursesForTerm(selectedTerm, courses);
+    const suggestions = suggestCoursesForTerm(selectedTerm, courses, passedCourses, getCourseStatus);
     console.log('Suggested courses for term', selectedTerm, ':', suggestions);
   };
 
