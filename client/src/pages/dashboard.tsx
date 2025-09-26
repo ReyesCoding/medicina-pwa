@@ -56,7 +56,7 @@ export function Dashboard() {
             </div>
             
             {/* Course Detail Sidebar - 1/3 width */}
-            <div className="w-1/3 bg-background">
+            <div className="w-1/3 bg-background sticky top-0 h-screen overflow-y-auto">
               {selectedCourse ? (
                 <CourseDetail course={selectedCourse} />
               ) : (
