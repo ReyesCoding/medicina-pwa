@@ -44,30 +44,29 @@ export function Dashboard() {
           onShowPlanModal={handleShowPlanModal}
         />
         
-        <main className="flex-1 overflow-auto">
-          <div className="h-full flex">
-            {/* Course List - 2/3 width */}
-            <div className="w-2/3 border-r border-border">
-              <CourseList 
-                filters={filters}
-                onCourseSelect={handleCourseSelect}
-                selectedCourse={selectedCourse}
-              />
-            </div>
-            
-            {/* Course Detail Sidebar - 1/3 width */}
-            <div className="w-1/3 bg-background sticky top-0 h-screen overflow-y-auto">
-              {selectedCourse ? (
-                <CourseDetail course={selectedCourse} />
-              ) : (
-                <div className="p-6 h-full flex items-center justify-center text-center">
-                  <div className="text-muted-foreground">
-                    <div className="text-lg font-medium mb-2">Selecciona una materia</div>
-                    <p className="text-sm">Haz clic en cualquier materia para ver sus detalles</p>
-                  </div>
+        <main className="flex-1 overflow-hidden relative">
+          {/* Course List - takes up left 2/3 with its own scroll */}
+          <div className="w-2/3 border-r border-border h-full overflow-y-auto">
+            <CourseList 
+              filters={filters}
+              onCourseSelect={handleCourseSelect}
+              selectedCourse={selectedCourse}
+              onShowPlanModal={handleShowPlanModal}
+            />
+          </div>
+          
+          {/* Course Detail Sidebar - fixed position on right 1/3 */}
+          <div className="fixed top-[80px] right-0 w-1/3 h-[calc(100vh-80px)] bg-background border-l border-border overflow-y-auto z-10">
+            {selectedCourse ? (
+              <CourseDetail course={selectedCourse} />
+            ) : (
+              <div className="p-6 h-full flex items-center justify-center text-center">
+                <div className="text-muted-foreground">
+                  <div className="text-lg font-medium mb-2">Selecciona una materia</div>
+                  <p className="text-sm">Haz clic en cualquier materia para ver sus detalles</p>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </main>
       </div>

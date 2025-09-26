@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Course } from '@/types';
 import { useCourseData } from '@/hooks/use-course-data';
 import { useStudentProgress } from '@/contexts/student-progress-context';
+import { GradeInputDialog } from '@/components/grade-input-dialog';
 
 interface CourseDetailProps {
   course?: Course;
@@ -9,7 +12,8 @@ interface CourseDetailProps {
 
 export function CourseDetail({ course }: CourseDetailProps) {
   const { getCourseById } = useCourseData();
-  const { getCourseStatus, getPassedCourses } = useStudentProgress();
+  const { getCourseStatus, getPassedCourses, markCoursePassed, removeCourseProgress } = useStudentProgress();
+  const [gradeDialogOpen, setGradeDialogOpen] = useState(false);
 
   if (!course) {
     return null; // Return nothing when no course is selected (inline mode)
@@ -17,6 +21,8 @@ export function CourseDetail({ course }: CourseDetailProps) {
 
   const passedCourses = getPassedCourses();
   const status = getCourseStatus(course, passedCourses);
+  const isPassed = status === 'passed';
+  const isBlocked = status === 'blocked';
 
   const getStatusBadge = () => {
     switch (status) {
@@ -40,6 +46,23 @@ export function CourseDetail({ course }: CourseDetailProps) {
         Electiva • {displayText}
       </span>
     );
+  };
+
+  const handleMarkPassed = () => {
+    setGradeDialogOpen(true);
+  };
+
+  const handleUndoPassed = () => {
+    removeCourseProgress(course.id);
+  };
+
+  const handleGradeConfirm = (grade: string) => {
+    markCoursePassed(course.id, grade);
+    setGradeDialogOpen(false);
+  };
+
+  const handleGradeCancel = () => {
+    setGradeDialogOpen(false);
   };
 
 
@@ -127,6 +150,46 @@ export function CourseDetail({ course }: CourseDetailProps) {
         </div>
       </div>
 
+      {/* Grade Management Section */}
+      <div className="border-t border-border pt-4">
+        <h4 className="font-medium text-foreground text-sm mb-3">Gestión de Calificaciones</h4>
+        <div className="space-y-2">
+          {!isPassed ? (
+            <Button 
+              size="sm" 
+              variant="default"
+              disabled={isBlocked}
+              onClick={handleMarkPassed}
+              data-testid={`mark-passed-${course.id}`}
+              className="w-full"
+            >
+              ✓ Marcar como Aprobada
+            </Button>
+          ) : (
+            <Button 
+              size="sm" 
+              variant="destructive"
+              onClick={handleUndoPassed}
+              data-testid={`undo-passed-${course.id}`}
+              className="w-full"
+            >
+              ✗ Deshacer Aprobación
+            </Button>
+          )}
+          {isBlocked && (
+            <p className="text-xs text-muted-foreground">
+              Completa los prerrequisitos para poder aprobar esta materia.
+            </p>
+          )}
+        </div>
+      </div>
+
+      <GradeInputDialog
+        open={gradeDialogOpen}
+        onClose={handleGradeCancel}
+        onConfirm={handleGradeConfirm}
+        courseName={`${course.id} - ${course.name}`}
+      />
     </div>
   );
 }

@@ -1,29 +1,24 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Course, FilterState, CourseStatus } from '@/types';
 import { useCourseData } from '@/hooks/use-course-data';
 import { useStudentProgress } from '@/contexts/student-progress-context';
 import { useSchedule } from '@/hooks/use-schedule';
-import { GradeInputDialog } from '@/components/grade-input-dialog';
-import { CourseDetail } from '@/components/course-detail';
 import { cn } from '@/lib/utils';
 
 interface CourseListProps {
   filters: FilterState;
   onCourseSelect: (course: Course) => void;
   selectedCourse?: Course;
+  onShowPlanModal: () => void;
 }
 
-export function CourseList({ filters, onCourseSelect, selectedCourse }: CourseListProps) {
+export function CourseList({ filters, onCourseSelect, selectedCourse, onShowPlanModal }: CourseListProps) {
   const { courses, getAllTerms } = useCourseData();
-  const { getCourseStatus, passedCourses, markCoursePassed, removeCourseProgress } = useStudentProgress();
-  const { getCoursesInPlan, suggestCoursesForTerm } = useSchedule();
-  
-  const [gradeDialogOpen, setGradeDialogOpen] = useState(false);
-  const [courseToGrade, setCourseToGrade] = useState<Course | null>(null);
+  const { getCourseStatus, passedCourses } = useStudentProgress();
+  const { getCoursesInPlan } = useSchedule();
 
   const plannedCourses = getCoursesInPlan();
   const terms = getAllTerms();
@@ -139,32 +134,8 @@ export function CourseList({ filters, onCourseSelect, selectedCourse }: CourseLi
     );
   };
 
-  const handleMarkPassed = (course: Course, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCourseToGrade(course);
-    setGradeDialogOpen(true);
-  };
-
-  const handleGradeConfirm = (grade: string) => {
-    if (courseToGrade) {
-      markCoursePassed(courseToGrade.id, grade);
-      setCourseToGrade(null);
-    }
-  };
-
-  const handleGradeCancel = () => {
-    setCourseToGrade(null);
-    setGradeDialogOpen(false);
-  };
-
-  const handleUndoPassed = (courseId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    removeCourseProgress(courseId);
-  };
-
   const handleSuggestPlan = () => {
-    // This would open a modal or trigger plan suggestions
-    console.log('Suggest plan functionality');
+    onShowPlanModal();
   };
 
   return (
@@ -264,32 +235,6 @@ export function CourseList({ filters, onCourseSelect, selectedCourse }: CourseLi
                             <div>{course.credits} créditos</div>
                             <div>HT: {course.theoreticalHours} • HP: {course.practicalHours}</div>
                           </div>
-                          
-                          {/* Action Button */}
-                          <div className="flex gap-2">
-                            {!isPassed ? (
-                              <Button 
-                                size="sm" 
-                                variant="secondary"
-                                disabled={isBlocked}
-                                onClick={(e) => handleMarkPassed(course, e)}
-                                data-testid={`mark-passed-${course.id}`}
-                                className="w-full text-xs px-2 py-1.5 h-8"
-                              >
-                                ✓ Aprobar
-                              </Button>
-                            ) : (
-                              <Button 
-                                size="sm" 
-                                variant="destructive"
-                                onClick={(e) => handleUndoPassed(course.id, e)}
-                                data-testid={`undo-passed-${course.id}`}
-                                className="w-full text-xs px-2 py-1.5 h-8"
-                              >
-                                ✗ Quitar
-                              </Button>
-                            )}
-                          </div>
                         </CardContent>
                       </Card>
                       
@@ -300,13 +245,6 @@ export function CourseList({ filters, onCourseSelect, selectedCourse }: CourseLi
             </div>
           ))}
       </div>
-      
-      <GradeInputDialog
-        open={gradeDialogOpen}
-        onClose={handleGradeCancel}
-        onConfirm={handleGradeConfirm}
-        courseName={courseToGrade ? `${courseToGrade.id} - ${courseToGrade.name}` : ''}
-      />
     </div>
   );
 }
