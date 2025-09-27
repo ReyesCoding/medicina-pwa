@@ -3,7 +3,7 @@ import { ProgressHeader } from '@/components/progress-header';
 import { Navigation } from '@/components/navigation';
 import { CourseList } from '@/components/course-list';
 import { CourseDetail } from '@/components/course-detail';
-import { PlanModal } from '@/components/plan-modal';
+import { ComprehensivePlanModal } from '@/components/comprehensive-plan-modal';
 import { AdminPanel } from '@/components/admin-panel';
 import { Course, FilterState } from '@/types';
 
@@ -73,7 +73,7 @@ export function Dashboard() {
         </main>
       </div>
 
-      <PlanModal 
+      <ComprehensivePlanModal 
         open={showPlanModal} 
         onClose={handleClosePlanModal} 
       />
