@@ -114,6 +114,7 @@ export function StudentProgressProvider({ children }: StudentProgressProviderPro
     }
 
     // Check corequisites - allow if any corequisite is passed, planned, or being planned together
+    // OR if the course has no prerequisites (corequisites can be taken together)
     if (course.corequisites.length > 0) {
       const hasPassedCoreq = course.corequisites.some(coreq => passedCourses.has(coreq));
       const hasPlannedCoreq = course.corequisites.some(coreq => {
@@ -122,8 +123,9 @@ export function StudentProgressProvider({ children }: StudentProgressProviderPro
       });
       const hasSamePlanCoreq = plannedCourses ? course.corequisites.some(coreq => plannedCourses.has(coreq)) : false;
       
-      // Allow if ANY corequisite condition is met
-      if (!hasPassedCoreq && !hasPlannedCoreq && !hasSamePlanCoreq) {
+      // Allow if ANY corequisite condition is met OR if course has no prerequisites
+      // (courses with only corequisites can be taken together)
+      if (!hasPassedCoreq && !hasPlannedCoreq && !hasSamePlanCoreq && course.prerequisites.length > 0) {
         return 'blocked';
       }
     }
