@@ -47,7 +47,7 @@ export function Navigation({
             data-testid="nav-course-list"
           >
             <List className="w-4 h-4" />
-            Course List
+            Lista de Materias
           </Button>
           <Button 
             variant="ghost"
@@ -56,7 +56,7 @@ export function Navigation({
             data-testid="nav-my-plan"
           >
             <ClipboardList className="w-4 h-4" />
-            My Plan
+            Mi Plan
           </Button>
           <Button 
             variant={activeView === 'progress' ? 'default' : 'ghost'}
@@ -65,7 +65,7 @@ export function Navigation({
             data-testid="nav-progress"
           >
             <TrendingUp className="w-4 h-4" />
-            Progress
+            Progreso
           </Button>
         </div>
       </div>
@@ -74,7 +74,7 @@ export function Navigation({
         <div className="space-y-4">
           <div>
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Filters
+              Filtros
             </label>
             <div className="mt-2 space-y-2">
               <Select 
@@ -85,13 +85,13 @@ export function Navigation({
                 })}
               >
                 <SelectTrigger data-testid="filter-term">
-                  <SelectValue placeholder="All Terms" />
+                  <SelectValue placeholder="Todos los Semestres" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Terms</SelectItem>
+                  <SelectItem value="all">Todos los Semestres</SelectItem>
                   {terms.map(term => (
                     <SelectItem key={term.term} value={term.term.toString()}>
-                      Term {term.term} - {term.block}
+                      Semestre {term.term} - {term.block}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -105,7 +105,7 @@ export function Navigation({
                   onClick={() => handleStatusFilter('all')}
                   data-testid="filter-all"
                 >
-                  All
+                  Todas
                 </Button>
                 <Button
                   size="sm"
@@ -114,7 +114,7 @@ export function Navigation({
                   onClick={() => handleStatusFilter('available')}
                   data-testid="filter-available"
                 >
-                  Available
+                  Disponibles
                 </Button>
                 <Button
                   size="sm"
@@ -123,7 +123,7 @@ export function Navigation({
                   onClick={() => handleStatusFilter('blocked')}
                   data-testid="filter-blocked"
                 >
-                  Blocked
+                  Bloqueadas
                 </Button>
                 <Button
                   size="sm"
@@ -132,7 +132,7 @@ export function Navigation({
                   onClick={() => handleStatusFilter('passed')}
                   data-testid="filter-passed"
                 >
-                  Passed
+                  Aprobadas
                 </Button>
               </div>
               
@@ -148,7 +148,7 @@ export function Navigation({
                     data-testid="filter-electives-only"
                   />
                   <label htmlFor="electives" className="text-sm text-foreground">
-                    Electives only
+                    Solo electivas
                   </label>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -162,7 +162,7 @@ export function Navigation({
                     data-testid="filter-in-plan"
                   />
                   <label htmlFor="in-plan" className="text-sm text-foreground">
-                    In my plan
+                    En mi plan
                   </label>
                 </div>
               </div>
@@ -171,11 +171,11 @@ export function Navigation({
           
           <div className="pt-4 border-t border-border">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Search
+              Buscar
             </label>
             <Input 
               type="text" 
-              placeholder="Course code or name..." 
+              placeholder="Código o nombre de materia..." 
               className="mt-2"
               value={filters.searchTerm}
               onChange={(e) => onFiltersChange({
@@ -191,10 +191,10 @@ export function Navigation({
       <div className="p-4 border-t border-border">
         <div className="text-xs text-muted-foreground space-y-1">
           <div data-testid="nav-credits">
-            Plan Credits: <span className="font-medium text-foreground">0/22</span>
+            Créditos del Plan: <span className="font-medium text-foreground">0/22</span>
           </div>
           <div data-testid="nav-gpa">
-            GPA: <span className="font-medium text-foreground">{gpa.toFixed(2)}</span>
+            Índice: <span className="font-medium text-foreground">{gpa.toFixed(2)}</span>
           </div>
         </div>
       </div>

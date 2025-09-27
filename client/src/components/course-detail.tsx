@@ -28,11 +28,11 @@ export function CourseDetail({ course }: CourseDetailProps) {
   const getStatusBadge = () => {
     switch (status) {
       case 'available':
-        return <Badge variant="default" className="pill ok">Available</Badge>;
+        return <Badge variant="default" className="pill ok">Disponible</Badge>;
       case 'blocked':
-        return <Badge variant="destructive" className="pill bad">Blocked</Badge>;
+        return <Badge variant="destructive" className="pill bad">Bloqueada</Badge>;
       case 'passed':
-        return <Badge variant="secondary" className="pill passed">Passed</Badge>;
+        return <Badge variant="secondary" className="pill passed">Aprobada</Badge>;
     }
   };
 

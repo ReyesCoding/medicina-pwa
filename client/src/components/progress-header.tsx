@@ -24,12 +24,12 @@ export function ProgressHeader() {
       <header className="bg-card border-b border-border px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Medicine Curriculum Planner</h1>
-            <p className="text-sm text-muted-foreground">UTESA 2013 Program • 18 Terms + Capstone</p>
+            <h1 className="text-2xl font-bold text-foreground">Planificador del Currículo de Medicina</h1>
+            <p className="text-sm text-muted-foreground">Programa UTESA 2013 • 18 Semestres + Proyecto Final</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-sm text-muted-foreground">
-              <span data-testid="courses-passed">0</span> of <span data-testid="total-courses">42</span> courses passed
+              <span data-testid="courses-passed">0</span> de <span data-testid="total-courses">42</span> materias aprobadas
             </div>
             <div className="flex items-center gap-2">
               <div className="w-32 bg-muted rounded-full h-2">
@@ -67,12 +67,12 @@ export function ProgressHeader() {
     <header className="bg-card border-b border-border px-6 py-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Medicine Curriculum Planner</h1>
-          <p className="text-sm text-muted-foreground">UTESA 2013 Program • 18 Terms + Capstone</p>
+          <h1 className="text-2xl font-bold text-foreground">Planificador del Currículo de Medicina</h1>
+          <p className="text-sm text-muted-foreground">Programa UTESA 2013 • 18 Semestres + Proyecto Final</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-sm text-muted-foreground">
-            <span data-testid="courses-passed">{passedCount}</span> of <span data-testid="total-courses">{courses.length}</span> courses passed
+            <span data-testid="courses-passed">{passedCount}</span> de <span data-testid="total-courses">{courses.length}</span> materias aprobadas
           </div>
           <div className="flex items-center gap-2">
             <div className="w-32 bg-muted rounded-full h-2">

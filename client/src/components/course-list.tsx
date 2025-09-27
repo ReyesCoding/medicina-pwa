@@ -114,11 +114,11 @@ export function CourseList({ filters, onCourseSelect, selectedCourse, onShowPlan
     
     switch (status) {
       case 'available':
-        return <Badge variant="default" className="pill ok">Available</Badge>;
+        return <Badge variant="default" className="pill ok">Disponible</Badge>;
       case 'blocked':
-        return <Badge variant="destructive" className="pill bad">Blocked</Badge>;
+        return <Badge variant="destructive" className="pill bad">Bloqueada</Badge>;
       case 'passed':
-        return <Badge variant="secondary" className="pill passed">Passed</Badge>;
+        return <Badge variant="secondary" className="pill passed">Aprobada</Badge>;
     }
   };
 
@@ -144,17 +144,17 @@ export function CourseList({ filters, onCourseSelect, selectedCourse, onShowPlan
       {/* Header */}
       <div className="p-6 border-b border-border bg-background">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-foreground">Course Catalog</h2>
+          <h2 className="text-lg font-semibold text-foreground">Catálogo de Materias</h2>
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground" data-testid="course-count">
-              {filteredCourses.length} courses
+              {filteredCourses.length} materias
             </span>
             <Button 
               size="sm" 
               onClick={handleSuggestPlan}
               data-testid="suggest-plan-btn"
             >
-              Suggest Plan
+              Sugerir Plan
             </Button>
           </div>
         </div>
@@ -183,8 +183,8 @@ export function CourseList({ filters, onCourseSelect, selectedCourse, onShowPlan
                       {group.name}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      {group.block} • {group.courses.length} courses • {group.courses.reduce((sum: number, c: Course) => sum + c.credits, 0)} credits
-                      {group.isElective && " • Choose your electives"}
+                      {group.block} • {group.courses.length} materias • {group.courses.reduce((sum: number, c: Course) => sum + c.credits, 0)} créditos
+                      {group.isElective && " • Elige tus electivas"}
                     </p>
                   </div>
                 </div>

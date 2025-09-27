@@ -83,13 +83,13 @@ export function PlanModal({ open, onClose }: PlanModalProps) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>My Course Plan</DialogTitle>
+          <DialogTitle>Mi Plan de Estudios</DialogTitle>
           <div className="flex items-center gap-4 mt-2">
             <div className="text-sm text-muted-foreground" data-testid="plan-info">
-              Planned credits: {plannedCourses.reduce((sum, course) => sum + (course?.credits || 0), 0)} / 22
+              Créditos planificados: {plannedCourses.reduce((sum, course) => sum + (course?.credits || 0), 0)} / 22
             </div>
             <Button size="sm" onClick={handleSuggestCourses} data-testid="suggest-courses">
-              Suggest courses
+              Sugerir materias
             </Button>
           </div>
         </DialogHeader>
@@ -111,11 +111,11 @@ export function PlanModal({ open, onClose }: PlanModalProps) {
                         {course.id} — {course.name}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {course.credits} credits • Term {course.term}
+                        {course.credits} créditos • Semestre {course.term}
                       </div>
                       {course.isElective && (
                         <Badge variant="secondary" className="mt-1">
-                          Elective • {course.electiveType}
+                          Electiva • {course.electiveType}
                         </Badge>
                       )}
                     </div>
@@ -132,13 +132,13 @@ export function PlanModal({ open, onClose }: PlanModalProps) {
                   {sections.length > 0 && (
                     <div className="space-y-3">
                       <div>
-                        <label className="text-sm font-medium text-foreground">Select Section</label>
+                        <label className="text-sm font-medium text-foreground">Seleccionar Sección</label>
                         <Select 
                           value={course.sectionId || ""} 
                           onValueChange={(sectionId) => handleSectionChange(course.id, sectionId)}
                         >
                           <SelectTrigger className="mt-1" data-testid={`section-select-${course.id}`}>
-                            <SelectValue placeholder="Choose a section..." />
+                            <SelectValue placeholder="Elige una sección..." />
                           </SelectTrigger>
                           <SelectContent>
                             {sections.map(section => (
