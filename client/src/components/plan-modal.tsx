@@ -18,6 +18,7 @@ export function PlanModal({ open, onClose }: PlanModalProps) {
   const { courses, getSectionsByCourse } = useCourseData();
   const { 
     coursePlan, 
+    addCourseToPlan,
     removeCourseFromPlan, 
     updateSectionSelection, 
     detectScheduleConflicts,
@@ -58,8 +59,18 @@ export function PlanModal({ open, onClose }: PlanModalProps) {
   };
 
   const handleSuggestCourses = () => {
+    const plannedCourseIds = new Set(coursePlan.map(plan => plan.courseId));
     const suggestions = suggestCoursesForTerm(selectedTerm, courses, passedCourses, getCourseStatus);
+    
     console.log('Suggested courses for term', selectedTerm, ':', suggestions);
+    
+    // Add suggested courses to plan
+    suggestions.forEach(courseId => {
+      const course = courses.find(c => c.id === courseId);
+      if (course && !plannedCourseIds.has(courseId)) {
+        addCourseToPlan(courseId, selectedTerm);
+      }
+    });
   };
 
   const getCourseConflicts = (courseId: string) => {

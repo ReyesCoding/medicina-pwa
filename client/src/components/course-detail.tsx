@@ -12,7 +12,7 @@ interface CourseDetailProps {
 
 export function CourseDetail({ course }: CourseDetailProps) {
   const { getCourseById } = useCourseData();
-  const { getCourseStatus, getPassedCourses, markCoursePassed, removeCourseProgress } = useStudentProgress();
+  const { getCourseStatus, getPassedCourses, getPlannedCourses, markCoursePassed, removeCourseProgress } = useStudentProgress();
   const [gradeDialogOpen, setGradeDialogOpen] = useState(false);
 
   if (!course) {
@@ -20,7 +20,8 @@ export function CourseDetail({ course }: CourseDetailProps) {
   }
 
   const passedCourses = getPassedCourses();
-  const status = getCourseStatus(course, passedCourses);
+  const plannedCourses = getPlannedCourses();
+  const status = getCourseStatus(course, passedCourses, plannedCourses);
   const isPassed = status === 'passed';
   const isBlocked = status === 'blocked';
 

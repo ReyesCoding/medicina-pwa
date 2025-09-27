@@ -11,7 +11,7 @@ interface StudentProgressContextType {
   markCourseInProgress: (courseId: string, sectionId?: string) => void;
   markCoursePlanned: (courseId: string, sectionId?: string) => void;
   removeCourseProgress: (courseId: string) => void;
-  getCourseStatus: (course: Course, passedCourses: Set<string>) => CourseStatus;
+  getCourseStatus: (course: Course, passedCourses: Set<string>, plannedCourses?: Set<string>) => CourseStatus;
   getPassedCourses: () => Set<string>;
   getPlannedCourses: () => Set<string>;
   getTotalCredits: (courses: Course[]) => { passed: number; planned: number; total: number };
@@ -98,7 +98,7 @@ export function StudentProgressProvider({ children }: StudentProgressProviderPro
     saveProgress(newProgress);
   };
 
-  const getCourseStatus = (course: Course, passedCourses: Set<string>): CourseStatus => {
+  const getCourseStatus = (course: Course, passedCourses: Set<string>, plannedCourses?: Set<string>): CourseStatus => {
     // Use the passed Set directly instead of accessing progress Map
     if (passedCourses.has(course.id)) {
       return 'passed';
@@ -113,39 +113,37 @@ export function StudentProgressProvider({ children }: StudentProgressProviderPro
       }
     }
 
-    // Check corequisites - these should be taken together, not separately
-    // If course has corequisites, at least one should be planned, in progress, or passed
+    // Check corequisites - allow if any corequisite is passed, planned, or being planned together
     if (course.corequisites.length > 0) {
       const hasPassedCoreq = course.corequisites.some(coreq => passedCourses.has(coreq));
       const hasPlannedCoreq = course.corequisites.some(coreq => {
         const coreqProgress = progress.get(coreq);
         return coreqProgress?.status === 'planned' || coreqProgress?.status === 'in_progress';
       });
+      const hasSamePlanCoreq = plannedCourses ? course.corequisites.some(coreq => plannedCourses.has(coreq)) : false;
       
-      // For corequisites, we should allow course if:
-      // 1. Any corequisite is already passed/planned, OR
-      // 2. The course itself is being planned (handled elsewhere)
-      if (!hasPassedCoreq && !hasPlannedCoreq) {
+      // Allow if ANY corequisite condition is met
+      if (!hasPassedCoreq && !hasPlannedCoreq && !hasSamePlanCoreq) {
         return 'blocked';
       }
     }
 
-    // Check elective availability based on student's progress
+    // Check elective availability based on student's academic progress
     if (course.isElective) {
-      const currentTermProgress = calculateCurrentTermProgress(passedCourses, allCourses);
+      const studentProgress = calculateStudentTermProgress(passedCourses, plannedCourses || new Set());
       
-      // General electives available after completing term 6
-      if (course.electiveType === 'general' && currentTermProgress < 6) {
+      // General electives available when student has reached term 6
+      if (course.electiveType === 'general' && studentProgress < 6) {
         return 'blocked';
       }
       
-      // Professional electives for basic sciences available after term 11  
-      if (course.electiveType === 'professional' && course.term <= 11 && currentTermProgress < 11) {
+      // Professional electives for basic sciences available when reached term 11
+      if (course.electiveType === 'professional' && course.term <= 11 && studentProgress < 11) {
         return 'blocked';
       }
       
-      // Professional electives for clinical sciences available after term 15
-      if (course.electiveType === 'professional' && course.term > 11 && currentTermProgress < 15) {
+      // Professional electives for clinical sciences available when reached term 15
+      if (course.electiveType === 'professional' && course.term > 11 && studentProgress < 15) {
         return 'blocked';
       }
     }
@@ -153,32 +151,32 @@ export function StudentProgressProvider({ children }: StudentProgressProviderPro
     return 'available';
   };
 
-  // Helper function to determine student's current term progress based on passed courses
-  const calculateCurrentTermProgress = (passedCourses: Set<string>, courses: Course[]): number => {
-    if (courses.length === 0) return 0;
+  // Helper function to determine student's current term progress based on passed and planned courses
+  const calculateStudentTermProgress = (passedCourses: Set<string>, plannedCourses: Set<string>): number => {
+    if (allCourses.length === 0) return 0;
     
-    // Find the highest term where the student has passed all required courses
-    let currentTermProgress = 0;
+    // Combine passed and planned courses to determine current academic standing
+    const completedOrPlanned = new Set([...Array.from(passedCourses), ...Array.from(plannedCourses)]);
+    let highestTerm = 0;
     
+    // Find highest term where student has completed or is planning significant progress
     for (let term = 1; term <= 18; term++) {
-      const termRequiredCourses = courses.filter(course => 
+      const termRequiredCourses = allCourses.filter(course => 
         course.term === term && !course.isElective
       );
       
-      const passedTermCourses = termRequiredCourses.filter(course => 
-        passedCourses.has(course.id)
+      const completedTermCourses = termRequiredCourses.filter(course => 
+        completedOrPlanned.has(course.id)
       );
       
-      // If student has passed at least 75% of required courses in this term, consider it completed
+      // Consider term "reached" if student has 50% or more courses completed/planned
       if (termRequiredCourses.length > 0 && 
-          passedTermCourses.length / termRequiredCourses.length >= 0.75) {
-        currentTermProgress = term;
-      } else {
-        break; // Stop at first incomplete term
+          completedTermCourses.length / termRequiredCourses.length >= 0.5) {
+        highestTerm = term;
       }
     }
     
-    return currentTermProgress;
+    return highestTerm;
   };
 
   const getPassedCourses = (): Set<string> => {

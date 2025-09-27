@@ -17,10 +17,11 @@ interface CourseListProps {
 
 export function CourseList({ filters, onCourseSelect, selectedCourse, onShowPlanModal }: CourseListProps) {
   const { courses, getAllTerms } = useCourseData();
-  const { getCourseStatus, passedCourses } = useStudentProgress();
+  const { getCourseStatus, passedCourses, getPlannedCourses } = useStudentProgress();
   const { getCoursesInPlan } = useSchedule();
 
   const plannedCourses = getCoursesInPlan();
+  const progressPlannedCourses = getPlannedCourses();
   const terms = getAllTerms();
 
   const filteredCourses = useMemo(() => {
@@ -30,7 +31,7 @@ export function CourseList({ filters, onCourseSelect, selectedCourse, onShowPlan
       
       // Status filter
       if (filters.status) {
-        const status = getCourseStatus(course, passedCourses);
+        const status = getCourseStatus(course, passedCourses, progressPlannedCourses);
         if (status !== filters.status) return false;
       }
       
@@ -51,7 +52,7 @@ export function CourseList({ filters, onCourseSelect, selectedCourse, onShowPlan
       
       return true;
     });
-  }, [courses, filters, passedCourses, plannedCourses]);
+  }, [courses, filters, passedCourses, plannedCourses, progressPlannedCourses]);
 
   const groupedCourses = useMemo(() => {
     const groups = new Map();
@@ -109,7 +110,7 @@ export function CourseList({ filters, onCourseSelect, selectedCourse, onShowPlan
   }, [filteredCourses, terms]);
 
   const getStatusBadge = (course: Course) => {
-    const status = getCourseStatus(course, passedCourses);
+    const status = getCourseStatus(course, passedCourses, progressPlannedCourses);
     
     switch (status) {
       case 'available':
@@ -192,7 +193,7 @@ export function CourseList({ filters, onCourseSelect, selectedCourse, onShowPlan
               {/* Course Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {group.courses.map((course: Course) => {
-                  const status = getCourseStatus(course, passedCourses);
+                  const status = getCourseStatus(course, passedCourses, progressPlannedCourses);
                   const isPassed = status === 'passed';
                   const isBlocked = status === 'blocked';
                   const isSelected = selectedCourse?.id === course.id;

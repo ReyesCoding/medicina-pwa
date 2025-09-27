@@ -117,7 +117,7 @@ export function useSchedule() {
     term: number, 
     availableCourses: any[],
     passedCourses: Set<string>,
-    getCourseStatus: (course: any, passedCourses: Set<string>) => string,
+    getCourseStatus: (course: any, passedCourses: Set<string>, plannedCourses?: Set<string>) => string,
     maxCredits = 22
   ): string[] => {
     const currentCredits = getPlannedTermCredits(term, availableCourses);
@@ -126,48 +126,123 @@ export function useSchedule() {
     const suggestions: string[] = [];
     let creditsToAdd = 0;
     
-    // Filter to only available courses not already in plan
-    const eligibleCourses = availableCourses
-      .filter(course => getCourseStatus(course, passedCourses) === 'available')
-      .filter(course => !coursePlan.some(plan => plan.courseId === course.id));
+    // Get courses already in plan to avoid duplicates
+    const plannedCourseIds = new Set(coursePlan.map(plan => plan.courseId));
     
-    // 1. Prioritize required courses for the exact term
-    const requiredTermCourses = eligibleCourses
-      .filter(course => course.term === term && !course.isElective)
-      .sort((a, b) => a.credits - b.credits);
-
-    for (const course of requiredTermCourses) {
-      if (creditsToAdd + course.credits <= remainingCredits) {
-        suggestions.push(course.id);
-        creditsToAdd += course.credits;
+    // Build corequisite clusters
+    const corequisiteClusters = buildCorequisiteClusters(availableCourses, passedCourses, plannedCourseIds);
+    
+    const usedCourseIds = new Set<string>();
+    
+    // Process clusters by priority: required term, electives, catch-up
+    const processClustersByPriority = (filterFn: (course: any) => boolean) => {
+      for (const cluster of corequisiteClusters) {
+        // Skip if any course in cluster is already used
+        if (cluster.some(courseId => usedCourseIds.has(courseId))) {
+          continue;
+        }
+        
+        const clusterCourses = cluster.map(id => availableCourses.find(c => c.id === id)).filter(Boolean);
+        if (clusterCourses.length === 0) continue;
+        
+        // Check if cluster matches filter criteria
+        if (!clusterCourses.some(filterFn)) continue;
+        
+        // Calculate total credits for the cluster
+        const clusterCredits = clusterCourses.reduce((sum, course) => sum + course.credits, 0);
+        
+        if (creditsToAdd + clusterCredits > remainingCredits) continue;
+        
+        // Check availability for the entire cluster
+        let allAvailable = false;
+        
+        if (clusterCourses.length === 1) {
+          // Single course - check normally
+          const course = clusterCourses[0];
+          allAvailable = getCourseStatus(course, passedCourses, plannedCourseIds) === 'available' &&
+                        (!course.isElective || isElectiveAvailableForTerm(course, term));
+        } else {
+          // Corequisite cluster - simulate planning them together
+          const clusterPlannedSet = new Set([...Array.from(plannedCourseIds), ...cluster]);
+          allAvailable = clusterCourses.every(course => {
+            const status = getCourseStatus(course, passedCourses, clusterPlannedSet);
+            return status === 'available' && (!course.isElective || isElectiveAvailableForTerm(course, term));
+          });
+        }
+        
+        if (allAvailable) {
+          cluster.forEach(courseId => {
+            suggestions.push(courseId);
+            usedCourseIds.add(courseId);
+          });
+          creditsToAdd += clusterCredits;
+        }
       }
-    }
-
-    // 2. Add electives that are available for this term
-    const availableElectives = eligibleCourses
-      .filter(course => course.isElective && isElectiveAvailableForTerm(course, term))
-      .sort((a, b) => a.credits - b.credits);
-
-    for (const course of availableElectives) {
-      if (creditsToAdd + course.credits <= remainingCredits) {
-        suggestions.push(course.id);
-        creditsToAdd += course.credits;
-      }
-    }
-
-    // 3. Add other available required courses from earlier terms (catch-up)
-    const earlierRequiredCourses = eligibleCourses
-      .filter(course => course.term < term && !course.isElective)
-      .sort((a, b) => a.credits - b.credits);
-
-    for (const course of earlierRequiredCourses) {
-      if (creditsToAdd + course.credits <= remainingCredits) {
-        suggestions.push(course.id);
-        creditsToAdd += course.credits;
-      }
-    }
+    };
+    
+    // 1. Process required courses for the exact term
+    processClustersByPriority(course => course.term === term && !course.isElective);
+    
+    // 2. Process electives available for this term
+    processClustersByPriority(course => course.isElective && isElectiveAvailableForTerm(course, term));
+    
+    // 3. Process catch-up required courses from earlier terms
+    processClustersByPriority(course => course.term < term && !course.isElective);
 
     return suggestions;
+  };
+
+  // Helper function to build corequisite clusters
+  const buildCorequisiteClusters = (
+    allCourses: any[], 
+    passedCourses: Set<string>, 
+    plannedCourseIds: Set<string>
+  ): string[][] => {
+    const clusters: string[][] = [];
+    const processedCourses = new Set<string>();
+    
+    for (const course of allCourses) {
+      if (processedCourses.has(course.id) || 
+          passedCourses.has(course.id) || 
+          plannedCourseIds.has(course.id)) {
+        continue;
+      }
+      
+      if (!course.corequisites || course.corequisites.length === 0) {
+        // Single course cluster
+        clusters.push([course.id]);
+        processedCourses.add(course.id);
+      } else {
+        // Build corequisite cluster
+        const cluster = new Set([course.id]);
+        const toProcess = [...course.corequisites];
+        
+        while (toProcess.length > 0) {
+          const coreqId = toProcess.shift()!;
+          if (!cluster.has(coreqId) && 
+              !passedCourses.has(coreqId) && 
+              !plannedCourseIds.has(coreqId)) {
+            cluster.add(coreqId);
+            
+            // Find the corequisite course and add its corequisites too
+            const coreqCourse = allCourses.find(c => c.id === coreqId);
+            if (coreqCourse && coreqCourse.corequisites) {
+              coreqCourse.corequisites.forEach((nestedCoreq: string) => {
+                if (!cluster.has(nestedCoreq)) {
+                  toProcess.push(nestedCoreq);
+                }
+              });
+            }
+          }
+        }
+        
+        const clusterArray = Array.from(cluster);
+        clusters.push(clusterArray);
+        clusterArray.forEach(id => processedCourses.add(id));
+      }
+    }
+    
+    return clusters;
   };
 
   // Helper function to determine if an elective is available for a specific term
@@ -201,6 +276,7 @@ export function useSchedule() {
     getCoursesInPlan,
     getPlannedTermCredits,
     suggestCoursesForTerm,
-    isElectiveAvailableForTerm
+    isElectiveAvailableForTerm,
+    buildCorequisiteClusters
   };
 }
