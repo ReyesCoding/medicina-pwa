@@ -61,6 +61,13 @@ export function StudentProgressProvider({ children }: StudentProgressProviderPro
 
   const markCoursePassed = (courseId: string, grade?: string) => {
     console.log('[markCoursePassed] Called for:', courseId);
+    
+    // Validate that grade is C or above (if provided)
+    if (grade && !['A', 'B', 'C'].includes(grade)) {
+      console.warn('[markCoursePassed] Grade must be C or above to pass. Received:', grade);
+      return;
+    }
+    
     const newProgress = new Map(progress);
     newProgress.set(courseId, {
       courseId,
@@ -249,10 +256,10 @@ export function StudentProgressProvider({ children }: StudentProgressProviderPro
 
   const getGradePoints = (grade: string): number | null => {
     const gradeMap: { [key: string]: number } = {
-      'A+': 4.0, 'A': 4.0, 'A-': 3.7,
-      'B+': 3.3, 'B': 3.0, 'B-': 2.7,
-      'C+': 2.3, 'C': 2.0, 'C-': 1.7,
-      'D+': 1.3, 'D': 1.0, 'D-': 0.7,
+      'A': 4.0,
+      'B': 3.0,
+      'C': 2.0,
+      'D': 1.0,
       'F': 0.0
     };
     return gradeMap[grade] ?? null;
