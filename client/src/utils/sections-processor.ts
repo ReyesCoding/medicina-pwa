@@ -53,6 +53,9 @@ export function parseTimeFromLabel(label: string): { start: number; end: number;
       if (i < daysStr.length - 1 && daysStr.substr(i, 2) === 'MI') {
         days.push('MI');
         i += 2;
+      } else if (i < daysStr.length - 1 && daysStr.substr(i, 2) === 'MA') {
+        days.push('MA');
+        i += 2;
       } else {
         days.push(daysStr[i]);
         i += 1;
@@ -60,7 +63,7 @@ export function parseTimeFromLabel(label: string): { start: number; end: number;
     }
     
     // Extract time range (e.g., "7:00 a 10:00 am")
-    const timeMatch = label.match(/(\d+):(\d+)\s+a\s+(\d+):(\d+)\s+(am|pm)/);
+    const timeMatch = label.match(/(\d+):(\d+)\s+a\s+(\d+):(\d+)\s+(am|pm)/i);
     if (!timeMatch) return null;
     
     const [, startHour, startMin, endHour, endMin, period] = timeMatch;
@@ -69,17 +72,27 @@ export function parseTimeFromLabel(label: string): { start: number; end: number;
     let endMinutes = parseInt(endHour) * 60 + parseInt(endMin);
     
     // Convert to 24-hour format
-    if (period === 'pm' && parseInt(startHour) !== 12) {
+    const isAM = period.toLowerCase() === 'am';
+    const isPM = period.toLowerCase() === 'pm';
+    
+    if (isPM && parseInt(startHour) !== 12) {
       startMinutes += 12 * 60;
     }
-    if (period === 'pm' && parseInt(endHour) !== 12) {
+    if (isPM && parseInt(endHour) !== 12) {
       endMinutes += 12 * 60;
     }
-    if (period === 'am' && parseInt(startHour) === 12) {
+    if (isAM && parseInt(startHour) === 12) {
       startMinutes -= 12 * 60;
     }
-    if (period === 'am' && parseInt(endHour) === 12) {
+    if (isAM && parseInt(endHour) === 12) {
+      // Handle "12:xx am" edge case - if start > end, treat 12:xx am as 12:xx PM (noon)
       endMinutes -= 12 * 60;
+      if (endMinutes < 0) endMinutes = 0;
+    }
+    
+    // Fix: if end < start and end hour was 12 with AM, it likely means PM (noon)
+    if (endMinutes < startMinutes && parseInt(endHour) === 12 && isAM) {
+      endMinutes += 12 * 60; // Convert to PM
     }
     
     return { start: startMinutes, end: endMinutes, days };
@@ -98,19 +111,43 @@ export function fixSectionSlots(section: ProcessedSection): ProcessedSection {
   if (parsedTime) {
     const { start, end, days } = parsedTime;
     
-    // Create corrected slots
+    // Day offsets for calculating absolute time
+    const dayOffsets: Record<string, number> = {
+      'L': 0,        // Monday
+      'MA': 1440,    // Tuesday
+      'MI': 2880,    // Wednesday
+      'J': 4320,     // Thursday
+      'V': 5760,     // Friday
+      'S': 7200      // Saturday
+    };
+    
+    // Create corrected slots with day offsets
     fixed.slots = days.map(day => ({
       day,
-      start,
-      end
+      start: (dayOffsets[day] || 0) + start,
+      end: (dayOffsets[day] || 0) + end
     }));
   } else {
     // Fix existing slots where end < start (likely PM/AM confusion)
     fixed.slots = section.slots.map(slot => {
-      if (slot.end < slot.start) {
+      // Extract day offset
+      const dayOffsets: Record<string, number> = {
+        'L': 0,
+        'MA': 1440,
+        'MI': 2880,
+        'J': 4320,
+        'V': 5760,
+        'S': 7200
+      };
+      
+      const dayOffset = dayOffsets[slot.day] || 0;
+      const startTime = slot.start - dayOffset;
+      const endTime = slot.end - dayOffset;
+      
+      if (endTime < startTime) {
         // If end is less than start, likely an AM/PM issue
         // Add 12 hours (720 minutes) to the end time
-        return { ...slot, end: slot.end + 720 };
+        return { ...slot, end: dayOffset + endTime + 720 };
       }
       return slot;
     });

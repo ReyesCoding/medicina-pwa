@@ -52,17 +52,20 @@ const DAY_OFFSETS: Record<string, number> = {
   'S': 7200      // Saturday
 };
 
-function parseTime(timeStr: string): { hours: number; minutes: number; isPM: boolean } {
+function parseTime(timeStr: string, isPM?: boolean): { hours: number; minutes: number; isPM: boolean } {
   const match = timeStr.match(/(\d+):(\d+)\s*(am|pm)?/i);
   if (!match) throw new Error(`Invalid time format: ${timeStr}`);
   
   let hours = parseInt(match[1]);
   const minutes = parseInt(match[2]);
-  const isPM = match[3]?.toLowerCase() === 'pm';
   
-  // Handle 12-hour format
-  if (isPM && hours !== 12) hours += 12;
-  if (!isPM && hours === 12) hours = 0;
+  // Use provided period or detect from string
+  const explicitPeriod = match[3]?.toLowerCase();
+  const usePM = explicitPeriod ? explicitPeriod === 'pm' : (isPM ?? false);
+  
+  // Handle 12-hour format conversion
+  if (usePM && hours !== 12) hours += 12;
+  if (!usePM && hours === 12) hours = 0;
   
   return { hours, minutes, isPM: hours >= 12 };
 }
@@ -119,17 +122,37 @@ function parseSchedule(scheduleStr: string, credits: number): { slots: TimeSlot[
   const rangeMatch = scheduleStr.match(/([A-Z]+)(\d+:\d+)\s*a\s*(\d+:\d+)\s*(am|pm)?/i);
   if (rangeMatch) {
     const days = parseDayCodes(rangeMatch[1]);
-    const startTime = parseTime(rangeMatch[2] + (rangeMatch[4] || ''));
-    const endTime = parseTime(rangeMatch[3] + (rangeMatch[4] || ''));
+    const period = rangeMatch[4]?.toLowerCase();
+    
+    // Parse end time first (it has the explicit period)
+    const endTime = parseTime(rangeMatch[3], period === 'pm');
+    
+    // Parse start time - infer period based on end time
+    let startTime = parseTime(rangeMatch[2], period === 'pm');
+    
+    // Ensure start is before end - if not, adjust start period
+    let startMinutes = timeToMinutes(startTime.hours, startTime.minutes);
+    let endMinutes = timeToMinutes(endTime.hours, endTime.minutes);
+    
+    if (startMinutes >= endMinutes) {
+      // Try flipping the period
+      startTime = parseTime(rangeMatch[2], period !== 'pm');
+      startMinutes = timeToMinutes(startTime.hours, startTime.minutes);
+      
+      // If still wrong, add 12 hours to end
+      if (startMinutes >= endMinutes && period === 'am') {
+        endMinutes += 720; // Add 12 hours
+      }
+    }
     
     const slots: TimeSlot[] = days.map(day => ({
       day,
-      start: DAY_OFFSETS[day] + timeToMinutes(startTime.hours, startTime.minutes),
-      end: DAY_OFFSETS[day] + timeToMinutes(endTime.hours, endTime.minutes)
+      start: DAY_OFFSETS[day] + startMinutes,
+      end: DAY_OFFSETS[day] + endMinutes
     }));
 
     const dayNames = days.map(d => DAY_CODES[d]).join('/');
-    const label = `${dayNames} ${formatTime12Hour(startTime.hours, startTime.minutes)} a ${formatTime12Hour(endTime.hours, endTime.minutes)}`;
+    const label = `${dayNames} ${formatTime12Hour(startTime.hours, startTime.minutes)} a ${formatTime12Hour(endMinutes % 1440 / 60, endMinutes % 60)}`;
     
     return { slots, label };
   }

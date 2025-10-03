@@ -416,7 +416,7 @@
         },
         {
           "crn": "DPG010002",
-          "label": "Lun 2:30 PM a 5:30 PM",
+          "label": "Lun 2:30 PM a 5.5:30 PM",
           "room": "B223",
           "career": "MED",
           "closed": false,
@@ -430,7 +430,7 @@
         },
         {
           "crn": "DPG010003",
-          "label": "Lun 6:15 PM a 9:15 PM",
+          "label": "Lun 6:15 PM a 9.25:15 PM",
           "room": "B311",
           "career": "MED",
           "closed": false,
@@ -444,7 +444,7 @@
         },
         {
           "crn": "DPG010004",
-          "label": "Lun 6:15 PM a 9:15 PM",
+          "label": "Lun 6:15 PM a 9.25:15 PM",
           "room": "B313",
           "career": "MED",
           "closed": false,
@@ -472,7 +472,7 @@
         },
         {
           "crn": "DPG010007",
-          "label": "Mié 5:30 PM a 8:30 PM",
+          "label": "Mié 5:30 PM a 8.5:30 PM",
           "room": "B319",
           "career": "MED",
           "closed": false,
@@ -514,7 +514,7 @@
         },
         {
           "crn": "DPG010011",
-          "label": "Mié 3:15 PM a 6:15 PM",
+          "label": "Mié 3:15 PM a 6.25:15 PM",
           "room": "B220",
           "career": "MED",
           "closed": false,
@@ -528,7 +528,7 @@
         },
         {
           "crn": "DPG010013",
-          "label": "Sáb 8:30 AM a 11:30 AM",
+          "label": "Sáb 8:30 AM a 11.5:30 AM",
           "room": "A305",
           "career": "MED",
           "closed": false,
@@ -542,21 +542,21 @@
         },
         {
           "crn": "DPG010014",
-          "label": "Vie 9:15 AM a 12:15 AM",
+          "label": "Vie 9:15 PM a 0.25:15 PM",
           "room": "B208",
           "career": "MED",
           "closed": false,
           "slots": [
             {
               "day": "V",
-              "start": 6315,
-              "end": 5775
+              "start": 7035,
+              "end": 6495
             }
           ]
         },
         {
           "crn": "DPG010017",
-          "label": "Jue 2:30 PM a 5:30 PM",
+          "label": "Jue 2:30 PM a 5.5:30 PM",
           "room": "B118",
           "career": "MED",
           "closed": false,
@@ -570,7 +570,7 @@
         },
         {
           "crn": "DPG010018",
-          "label": "Lun 7:45 AM a 10:45 AM",
+          "label": "Lun 7:45 AM a 10.75:45 AM",
           "room": "B113",
           "career": "MED",
           "closed": false,
@@ -631,7 +631,7 @@
         },
         {
           "crn": "DPG010026",
-          "label": "Vie 3:15 PM a 6:15 PM",
+          "label": "Vie 3:15 PM a 6.25:15 PM",
           "room": "B412",
           "career": "MED",
           "closed": false,
@@ -645,7 +645,7 @@
         },
         {
           "crn": "DPG010029",
-          "label": "Sáb 8:30 AM a 11:30 AM",
+          "label": "Sáb 8:30 AM a 11.5:30 AM",
           "room": "B414",
           "career": "MED",
           "closed": false,
@@ -687,21 +687,21 @@
         },
         {
           "crn": "DPG010039",
-          "label": "Mié 9:15 AM a 12:15 AM",
+          "label": "Mié 9:15 PM a 0.25:15 PM",
           "room": "B223",
           "career": "MED",
           "closed": false,
           "slots": [
             {
               "day": "MI",
-              "start": 3435,
-              "end": 2895
+              "start": 4155,
+              "end": 3615
             }
           ]
         },
         {
           "crn": "DPG010040",
-          "label": "Lun 12:15 PM a 3:15 PM",
+          "label": "Lun 12:15 PM a 3.25:15 PM",
           "room": "B421",
           "career": "MED",
           "closed": false,
@@ -743,7 +743,7 @@
         },
         {
           "crn": "DPG010047",
-          "label": "Jue 5:30 PM a 8:30 PM",
+          "label": "Jue 5:30 PM a 8.5:30 PM",
           "room": "B527",
           "career": "MED",
           "closed": false,
@@ -757,7 +757,7 @@
         },
         {
           "crn": "DPG010048",
-          "label": "Mar 3:15 PM a 6:15 PM",
+          "label": "Mar 3:15 PM a 6.25:15 PM",
           "room": "B326",
           "career": "MED",
           "closed": false,
@@ -777,15 +777,15 @@
       "sections": [
         {
           "crn": "SOC280002",
-          "label": "Jue 10:00 AM a 12:15 AM",
+          "label": "Jue 10:00 PM a 0.25:15 PM",
           "room": "B105",
           "career": "MED",
           "closed": false,
           "slots": [
             {
               "day": "J",
-              "start": 4920,
-              "end": 4335
+              "start": 5640,
+              "end": 5055
             }
           ]
         },
@@ -819,7 +819,7 @@
         },
         {
           "crn": "SOC280007",
-          "label": "Vie 5:30 PM a 7:45 PM",
+          "label": "Vie 5:30 PM a 7.75:45 PM",
           "room": "A302",
           "career": "MED",
           "closed": false,
@@ -833,14 +833,14 @@
         },
         {
           "crn": "SOC280011",
-          "label": "Mar 11:30 PM a 1:45 PM",
+          "label": "Mar 11:30 AM a 1.75:45 PM",
           "room": "B206",
           "career": "MED",
           "closed": false,
           "slots": [
             {
               "day": "MA",
-              "start": 2850,
+              "start": 2130,
               "end": 2265
             }
           ]
@@ -861,7 +861,7 @@
         },
         {
           "crn": "SOC280023",
-          "label": "Vie 4:00 PM a 6:15 PM",
+          "label": "Vie 4:00 PM a 6.25:15 PM",
           "room": "B314",
           "career": "MED",
           "closed": false,
@@ -2791,7 +2791,7 @@
       "sections": [
         {
           "crn": "ENF101001",
-          "label": "Lun 1:45 PM a 5:30 PM",
+          "label": "Lun 1:45 PM a 5.5:30 PM",
           "room": "A309",
           "career": "MED",
           "closed": false,
@@ -2805,7 +2805,7 @@
         },
         {
           "crn": "ENF101005",
-          "label": "Jue 4:45 PM a 8:30 PM",
+          "label": "Jue 4:45 PM a 8.5:30 PM",
           "room": "A309",
           "career": "MED",
           "closed": false,
@@ -2819,7 +2819,7 @@
         },
         {
           "crn": "ENF101010",
-          "label": "Mar 2:30 PM a 6:15 PM",
+          "label": "Mar 2:30 PM a 6.25:15 PM",
           "room": "A310",
           "career": "MED",
           "closed": false,
@@ -2833,7 +2833,7 @@
         },
         {
           "crn": "ENF101012",
-          "label": "Mar 7:45 AM a 11:30 AM",
+          "label": "Mar 7:45 AM a 11.5:30 AM",
           "room": "A309",
           "career": "MED",
           "closed": false,
@@ -2847,7 +2847,7 @@
         },
         {
           "crn": "ENF101018",
-          "label": "Sáb 7:45 AM a 11:30 AM",
+          "label": "Sáb 7:45 AM a 11.5:30 AM",
           "room": "A309",
           "career": "MED",
           "closed": false,
@@ -2861,7 +2861,7 @@
         },
         {
           "crn": "ENF101021",
-          "label": "Mié 7:45 AM a 11:30 AM",
+          "label": "Mié 7:45 AM a 11.5:30 AM",
           "room": "A309",
           "career": "MED",
           "closed": false,
@@ -2875,7 +2875,7 @@
         },
         {
           "crn": "ENF101023",
-          "label": "Vie 4:45 PM a 8:30 PM",
+          "label": "Vie 4:45 PM a 8.5:30 PM",
           "room": "A309",
           "career": "MED",
           "closed": false,
@@ -2928,7 +2928,7 @@
         },
         {
           "crn": "ESP301005",
-          "label": "Sáb 1:45 AM a 4:45 AM",
+          "label": "Sáb 1:45 AM a 4.75:45 AM",
           "room": "B414",
           "career": "MED",
           "closed": false,
@@ -2961,14 +2961,14 @@
         },
         {
           "crn": "ESP301026",
-          "label": "Vie 10:45 PM a 1:45 PM",
+          "label": "Vie 10:45 AM a 1.75:45 PM",
           "room": "B212",
           "career": "MED",
           "closed": false,
           "slots": [
             {
               "day": "V",
-              "start": 7125,
+              "start": 6405,
               "end": 6585
             }
           ]
@@ -3890,7 +3890,7 @@
         },
         {
           "crn": "MAT190007",
-          "label": "Sáb 7:45 AM a 10:45 AM",
+          "label": "Sáb 7:45 AM a 10.75:45 AM",
           "room": "B412",
           "career": "MED",
           "closed": false,
@@ -6048,7 +6048,7 @@
       "sections": [
         {
           "crn": "SOC420001",
-          "label": "Mar 2:30 PM a 4:45 PM",
+          "label": "Mar 2:30 PM a 4.75:45 PM",
           "room": "B404",
           "career": "MED",
           "closed": false,
@@ -6062,7 +6062,7 @@
         },
         {
           "crn": "SOC420002",
-          "label": "Vie 5:30 PM a 7:45 PM",
+          "label": "Vie 5:30 PM a 7.75:45 PM",
           "room": "B521",
           "career": "MED",
           "closed": false,
@@ -6076,7 +6076,7 @@
         },
         {
           "crn": "SOC420006",
-          "label": "Lun 5:30 PM a 7:45 PM",
+          "label": "Lun 5:30 PM a 7.75:45 PM",
           "room": "B426",
           "career": "MED",
           "closed": false,
@@ -6090,7 +6090,7 @@
         },
         {
           "crn": "SOC420010",
-          "label": "Mié 6:15 PM a 8:30 PM",
+          "label": "Mié 6:15 PM a 8.5:30 PM",
           "room": "A303",
           "career": "MED",
           "closed": false,
@@ -6104,7 +6104,7 @@
         },
         {
           "crn": "SOC420012",
-          "label": "Lun 8:30 AM a 10:45 AM",
+          "label": "Lun 8:30 AM a 10.75:45 AM",
           "room": "B220",
           "career": "MED",
           "closed": false,
@@ -6132,7 +6132,7 @@
         },
         {
           "crn": "SOC420043",
-          "label": "Mié 4:00 PM a 6:15 PM",
+          "label": "Mié 4:00 PM a 6.25:15 PM",
           "room": "B118",
           "career": "MED",
           "closed": false,
@@ -6367,7 +6367,7 @@
         },
         {
           "crn": "ING120007",
-          "label": "Sáb 1:45 PM a 4:45 PM",
+          "label": "Sáb 1:45 PM a 4.75:45 PM",
           "room": "B401",
           "career": "MED",
           "closed": false,
@@ -6381,15 +6381,15 @@
         },
         {
           "crn": "ING120042",
-          "label": "Sáb 9:15 AM a 12:15 AM",
+          "label": "Sáb 9:15 PM a 0.25:15 PM",
           "room": "A407",
           "career": "MED",
           "closed": false,
           "slots": [
             {
               "day": "S",
-              "start": 7755,
-              "end": 7215
+              "start": 8475,
+              "end": 7935
             }
           ]
         },
@@ -6653,7 +6653,7 @@
         },
         {
           "crn": "ING140019",
-          "label": "Vie 8:30 AM a 11:30 AM",
+          "label": "Vie 8:30 AM a 11.5:30 AM",
           "room": "B418",
           "career": "MED",
           "closed": false,
@@ -6837,7 +6837,7 @@
       "sections": [
         {
           "crn": "SOC180003",
-          "label": "Mar 7:00 AM a 9:15 AM",
+          "label": "Mar 7:00 AM a 9.25:15 AM",
           "room": "B305",
           "career": "MED",
           "closed": false,
@@ -6851,7 +6851,7 @@
         },
         {
           "crn": "SOC180050",
-          "label": "Vie 6:15 PM a 8:30 PM",
+          "label": "Vie 6:15 PM a 8.5:30 PM",
           "room": "B420",
           "career": "MED",
           "closed": false,
@@ -6865,7 +6865,7 @@
         },
         {
           "crn": "SOC180078",
-          "label": "Mié 1:00 PM a 3:15 PM",
+          "label": "Mié 1:00 PM a 3.25:15 PM",
           "room": "B112",
           "career": "MED",
           "closed": false,
@@ -18994,14 +18994,14 @@
       "sections": [
         {
           "crn": "MAT095001",
-          "label": "Sáb 10:00 PM a 1:00 PM",
+          "label": "Sáb 10:00 AM a 1:00 PM",
           "room": "B404",
           "career": "MED",
           "closed": false,
           "slots": [
             {
               "day": "S",
-              "start": 8520,
+              "start": 7800,
               "end": 7980
             }
           ]
@@ -19273,7 +19273,7 @@
         },
         {
           "crn": "MAT095018",
-          "label": "Sáb 8:30 AM a 11:30 AM",
+          "label": "Sáb 8:30 AM a 11.5:30 AM",
           "room": "A402",
           "career": "MED",
           "closed": false,
@@ -19897,7 +19897,7 @@
         },
         {
           "crn": "MAT100024",
-          "label": "Sáb 7:45 AM a 10:45 AM",
+          "label": "Sáb 7:45 AM a 10.75:45 AM",
           "room": "A208",
           "career": "MED",
           "closed": false,
@@ -19999,14 +19999,14 @@
         },
         {
           "crn": "MAT100061",
-          "label": "Sáb 10:45 PM a 1:45 PM",
+          "label": "Sáb 10:45 AM a 1.75:45 PM",
           "room": "A208",
           "career": "MED",
           "closed": false,
           "slots": [
             {
               "day": "S",
-              "start": 8565,
+              "start": 7845,
               "end": 8025
             }
           ]
@@ -20128,7 +20128,7 @@
         },
         {
           "crn": "MAT110009",
-          "label": "Sáb 7:45 AM a 10:45 AM",
+          "label": "Sáb 7:45 AM a 10.75:45 AM",
           "room": "A404",
           "career": "MED",
           "closed": false,
@@ -21488,7 +21488,7 @@
       "sections": [
         {
           "crn": "INF103001",
-          "label": "Mar 6:15 PM a 8:30 PM",
+          "label": "Mar 6:15 PM a 8.5:30 PM",
           "room": "C202",
           "career": "MED",
           "closed": false,
@@ -21502,14 +21502,14 @@
         },
         {
           "crn": "INF103003",
-          "label": "Mar 10:45 PM a 1:00 PM",
+          "label": "Mar 10:45 AM a 1:00 PM",
           "room": "C204",
           "career": "MED",
           "closed": false,
           "slots": [
             {
               "day": "MA",
-              "start": 2805,
+              "start": 2085,
               "end": 2220
             }
           ]
@@ -21544,7 +21544,7 @@
         },
         {
           "crn": "INF103006",
-          "label": "Lun 6:15 PM a 8:30 PM",
+          "label": "Lun 6:15 PM a 8.5:30 PM",
           "room": "C203",
           "career": "MED",
           "closed": false,
@@ -21558,7 +21558,7 @@
         },
         {
           "crn": "INF103007",
-          "label": "Mié 8:30 AM a 10:45 AM",
+          "label": "Mié 8:30 AM a 10.75:45 AM",
           "room": "C202",
           "career": "MED",
           "closed": false,
@@ -21622,21 +21622,21 @@
         },
         {
           "crn": "INF103012",
-          "label": "Lun 10:45 PM a 1:00 PM",
+          "label": "Lun 10:45 AM a 1:00 PM",
           "room": "C202",
           "career": "MED",
           "closed": false,
           "slots": [
             {
               "day": "L",
-              "start": 1365,
+              "start": 645,
               "end": 780
             }
           ]
         },
         {
           "crn": "INF103013",
-          "label": "Vie 3:15 PM a 5:30 PM",
+          "label": "Vie 3:15 PM a 5.5:30 PM",
           "room": "C201",
           "career": "MED",
           "closed": false,
@@ -21650,7 +21650,7 @@
         },
         {
           "crn": "INF103016",
-          "label": "Mar 4:00 PM a 6:15 PM",
+          "label": "Mar 4:00 PM a 6.25:15 PM",
           "room": "C202",
           "career": "MED",
           "closed": false,
@@ -21664,21 +21664,21 @@
         },
         {
           "crn": "INF103017",
-          "label": "Mar 10:45 PM a 1:00 PM",
+          "label": "Mar 10:45 AM a 1:00 PM",
           "room": "C202",
           "career": "MED",
           "closed": false,
           "slots": [
             {
               "day": "MA",
-              "start": 2805,
+              "start": 2085,
               "end": 2220
             }
           ]
         },
         {
           "crn": "INF103018",
-          "label": "Mié 5:30 PM a 7:45 PM",
+          "label": "Mié 5:30 PM a 7.75:45 PM",
           "room": "C204",
           "career": "MED",
           "closed": false,
@@ -21692,7 +21692,7 @@
         },
         {
           "crn": "INF103019",
-          "label": "Jue 2:30 PM a 4:45 PM",
+          "label": "Jue 2:30 PM a 4.75:45 PM",
           "room": "C202",
           "career": "MED",
           "closed": false,
@@ -21706,7 +21706,7 @@
         },
         {
           "crn": "INF103021",
-          "label": "Mié 3:15 PM a 5:30 PM",
+          "label": "Mié 3:15 PM a 5.5:30 PM",
           "room": "C202",
           "career": "MED",
           "closed": false,
@@ -21720,7 +21720,7 @@
         },
         {
           "crn": "INF103022",
-          "label": "Mar 8:30 AM a 10:45 AM",
+          "label": "Mar 8:30 AM a 10.75:45 AM",
           "room": "C204",
           "career": "MED",
           "closed": false,
@@ -21734,7 +21734,7 @@
         },
         {
           "crn": "INF103023",
-          "label": "Mar 3:15 PM a 5:30 PM",
+          "label": "Mar 3:15 PM a 5.5:30 PM",
           "room": "C203",
           "career": "MED",
           "closed": false,
@@ -21762,7 +21762,7 @@
         },
         {
           "crn": "INF103025",
-          "label": "Jue 1:00 PM a 3:15 PM",
+          "label": "Jue 1:00 PM a 3.25:15 PM",
           "room": "C201",
           "career": "MED",
           "closed": false,
@@ -21776,7 +21776,7 @@
         },
         {
           "crn": "INF103028",
-          "label": "Mié 4:00 PM a 6:15 PM",
+          "label": "Mié 4:00 PM a 6.25:15 PM",
           "room": "B213",
           "career": "MED",
           "closed": false,
@@ -21790,7 +21790,7 @@
         },
         {
           "crn": "INF103029",
-          "label": "Lun 8:30 AM a 10:45 AM",
+          "label": "Lun 8:30 AM a 10.75:45 AM",
           "room": "C204",
           "career": "MED",
           "closed": false,
@@ -21818,7 +21818,7 @@
         },
         {
           "crn": "INF103031",
-          "label": "Mar 9:15 AM a 11:30 AM",
+          "label": "Mar 9:15 AM a 11.5:30 AM",
           "room": "C201",
           "career": "MED",
           "closed": false,
@@ -21846,7 +21846,7 @@
         },
         {
           "crn": "INF103034",
-          "label": "Vie 5:30 PM a 7:45 PM",
+          "label": "Vie 5:30 PM a 7.75:45 PM",
           "room": "C204",
           "career": "MED",
           "closed": false,
@@ -21874,21 +21874,21 @@
         },
         {
           "crn": "INF103038",
-          "label": "Vie 10:00 AM a 12:15 AM",
+          "label": "Vie 10:00 PM a 0.25:15 PM",
           "room": "C201",
           "career": "MED",
           "closed": false,
           "slots": [
             {
               "day": "V",
-              "start": 6360,
-              "end": 5775
+              "start": 7080,
+              "end": 6495
             }
           ]
         },
         {
           "crn": "INF103043",
-          "label": "Lun 4:00 PM a 6:15 PM",
+          "label": "Lun 4:00 PM a 6.25:15 PM",
           "room": "C202",
           "career": "MED",
           "closed": false,
@@ -21902,7 +21902,7 @@
         },
         {
           "crn": "INF103056",
-          "label": "Lun 9:15 AM a 11:30 AM",
+          "label": "Lun 9:15 AM a 11.5:30 AM",
           "room": "C201",
           "career": "MED",
           "closed": false,
@@ -21930,21 +21930,21 @@
         },
         {
           "crn": "INF103060",
-          "label": "Mié 10:45 PM a 1:00 PM",
+          "label": "Mié 10:45 AM a 1:00 PM",
           "room": "C202",
           "career": "MED",
           "closed": false,
           "slots": [
             {
               "day": "MI",
-              "start": 4245,
+              "start": 3525,
               "end": 3660
             }
           ]
         },
         {
           "crn": "INF103062",
-          "label": "Jue 7:00 PM a 9:15 PM",
+          "label": "Jue 7:00 PM a 9.25:15 PM",
           "room": "C204",
           "career": "MED",
           "closed": false,
@@ -21958,7 +21958,7 @@
         },
         {
           "crn": "INF103072",
-          "label": "Vie 1:00 PM a 3:15 PM",
+          "label": "Vie 1:00 PM a 3.25:15 PM",
           "room": "C201",
           "career": "MED",
           "closed": false,
@@ -21972,7 +21972,7 @@
         },
         {
           "crn": "INF103074",
-          "label": "Jue 4:00 PM a 6:15 PM",
+          "label": "Jue 4:00 PM a 6.25:15 PM",
           "room": "C207",
           "career": "MED",
           "closed": false,
@@ -22000,7 +22000,7 @@
         },
         {
           "crn": "INF103081",
-          "label": "Jue 9:15 AM a 11:30 AM",
+          "label": "Jue 9:15 AM a 11.5:30 AM",
           "room": "B213",
           "career": "MED",
           "closed": false,
@@ -22028,7 +22028,7 @@
         },
         {
           "crn": "INF103094",
-          "label": "Mié 6:15 PM a 8:30 PM",
+          "label": "Mié 6:15 PM a 8.5:30 PM",
           "room": "TBA",
           "career": "MED",
           "closed": false,
@@ -22042,7 +22042,7 @@
         },
         {
           "crn": "INF103098",
-          "label": "Lun 7:00 PM a 9:15 PM",
+          "label": "Lun 7:00 PM a 9.25:15 PM",
           "room": "C202",
           "career": "MED",
           "closed": false,
@@ -28575,15 +28575,15 @@
         },
         {
           "crn": "DPG020002",
-          "label": "Vie 7:45 AM a 12:15 AM",
+          "label": "Vie 7:45 PM a 0.25:15 PM",
           "room": "G112",
           "career": "MED",
           "closed": false,
           "slots": [
             {
               "day": "V",
-              "start": 6225,
-              "end": 5775
+              "start": 6945,
+              "end": 6495
             }
           ]
         },
@@ -28603,14 +28603,14 @@
         },
         {
           "crn": "DPG020004",
-          "label": "Sáb 8:30 PM a 1:00 PM",
+          "label": "Sáb 8:30 AM a 1:00 PM",
           "room": "G203",
           "career": "MED",
           "closed": false,
           "slots": [
             {
               "day": "S",
-              "start": 8430,
+              "start": 7710,
               "end": 7980
             }
           ]
@@ -28659,7 +28659,7 @@
         },
         {
           "crn": "DPG020009",
-          "label": "Lun 4:00 PM a 8:30 PM",
+          "label": "Lun 4:00 PM a 8.5:30 PM",
           "room": "G103",
           "career": "MED",
           "closed": false,
@@ -28673,14 +28673,14 @@
         },
         {
           "crn": "DPG020011",
-          "label": "Mar 8:30 PM a 1:00 PM",
+          "label": "Mar 8:30 AM a 1:00 PM",
           "room": "G104",
           "career": "MED",
           "closed": false,
           "slots": [
             {
               "day": "MA",
-              "start": 2670,
+              "start": 1950,
               "end": 2220
             }
           ]
@@ -28715,14 +28715,14 @@
         },
         {
           "crn": "DPG020016",
-          "label": "Vie 8:30 PM a 1:00 PM",
+          "label": "Vie 8:30 AM a 1:00 PM",
           "room": "G104",
           "career": "MED",
           "closed": false,
           "slots": [
             {
               "day": "V",
-              "start": 6990,
+              "start": 6270,
               "end": 6540
             }
           ]
@@ -28743,7 +28743,7 @@
         },
         {
           "crn": "DPG020020",
-          "label": "Jue 4:00 PM a 8:30 PM",
+          "label": "Jue 4:00 PM a 8.5:30 PM",
           "room": "G112",
           "career": "MED",
           "closed": false,
@@ -28785,7 +28785,7 @@
         },
         {
           "crn": "DPG020023",
-          "label": "Mié 4:00 PM a 8:30 PM",
+          "label": "Mié 4:00 PM a 8.5:30 PM",
           "room": "G112",
           "career": "MED",
           "closed": false,
@@ -28841,7 +28841,7 @@
         },
         {
           "crn": "DPG020031",
-          "label": "Mar 4:00 PM a 8:30 PM",
+          "label": "Mar 4:00 PM a 8.5:30 PM",
           "room": "G109",
           "career": "MED",
           "closed": false,
@@ -28869,7 +28869,7 @@
         },
         {
           "crn": "DPG020038",
-          "label": "Jue 4:00 PM a 8:30 PM",
+          "label": "Jue 4:00 PM a 8.5:30 PM",
           "room": "B421",
           "career": "MED",
           "closed": false,
