@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { AlertTriangle, Check, X, Save, RotateCcw } from 'lucide-react';
+import { AlertTriangle, Check, X, Save, RotateCcw, FolderOpen } from 'lucide-react';
 import { Course } from '@/types';
 import { useCourseData } from '@/hooks/use-course-data';
 import { useStudentProgress } from '@/contexts/student-progress-context';
@@ -33,7 +33,24 @@ export function ComprehensivePlanModal({ open, onClose }: ComprehensivePlanModal
   
   const [selectedSections, setSelectedSections] = useState<SelectedSection[]>([]);
   const [conflicts, setConflicts] = useState<string[]>([]);
+  const [loadSavedPlan, setLoadSavedPlan] = useState(false);
   const passedCourses = getPassedCourses();
+
+  // Load saved plan on mount if requested
+  useEffect(() => {
+    if (open && loadSavedPlan) {
+      const savedPlan = localStorage.getItem('savedCoursePlan');
+      if (savedPlan) {
+        try {
+          const planData = JSON.parse(savedPlan);
+          setSelectedSections(planData.selectedSections || []);
+        } catch (error) {
+          console.error('Error loading saved plan:', error);
+        }
+      }
+      setLoadSavedPlan(false);
+    }
+  }, [open, loadSavedPlan]);
 
   // Get term information
   const terms = getAllTerms();
@@ -135,7 +152,14 @@ export function ComprehensivePlanModal({ open, onClose }: ComprehensivePlanModal
       return;
     }
     
-    // Here you would typically save to your backend or local storage
+    // Save to localStorage
+    const planData = {
+      selectedSections,
+      totalCredits,
+      savedAt: new Date().toISOString()
+    };
+    localStorage.setItem('savedCoursePlan', JSON.stringify(planData));
+    
     console.log('Saving plan:', selectedSections);
     alert('Plan guardado exitosamente!');
     onClose();
@@ -143,6 +167,22 @@ export function ComprehensivePlanModal({ open, onClose }: ComprehensivePlanModal
 
   const handleClearPlan = () => {
     setSelectedSections([]);
+  };
+
+  const handleLoadSavedPlan = () => {
+    const savedPlan = localStorage.getItem('savedCoursePlan');
+    if (savedPlan) {
+      try {
+        const planData = JSON.parse(savedPlan);
+        setSelectedSections(planData.selectedSections || []);
+        alert('Plan cargado exitosamente!');
+      } catch (error) {
+        console.error('Error loading saved plan:', error);
+        alert('Error al cargar el plan guardado.');
+      }
+    } else {
+      alert('No hay plan guardado disponible.');
+    }
   };
 
   const canSave = conflicts.length === 0 && totalCredits <= 31 && selectedSections.length > 0;
@@ -166,6 +206,14 @@ export function ComprehensivePlanModal({ open, onClose }: ComprehensivePlanModal
               </div>
             </div>
             <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleLoadSavedPlan}
+              >
+                <FolderOpen className="w-4 h-4 mr-2" />
+                Ver Plan Guardado
+              </Button>
               <Button 
                 variant="outline" 
                 size="sm" 
