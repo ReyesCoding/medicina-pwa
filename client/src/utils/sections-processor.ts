@@ -144,21 +144,74 @@ export function hasScheduleConflict(section1: ProcessedSection, section2: Proces
   return false;
 }
 
-// Format schedule for display
+// Convert 24-hour time to 12-hour format
+function formatTime12Hour(minutes: number): string {
+  const totalMinutes = minutes % 1440; // Handle overflow
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+  
+  return `${displayHours}:${mins.toString().padStart(2, '0')} ${period}`;
+}
+
+// Format schedule for display in 12-hour format
 export function formatScheduleDisplay(section: ProcessedSection): string {
+  // If it's a virtual class, return the label as is
+  if (section.label.toLowerCase().includes('virtual')) {
+    return section.label;
+  }
+  
   const dayNames: Record<string, string> = {
     'L': 'Lun',
     'MI': 'Mié', 
     'J': 'Jue',
     'V': 'Vie',
-    'S': 'Sáb'
+    'S': 'Sáb',
+    'MA': 'Mar'
   };
   
-  const schedules = section.slots.map(slot => {
-    const dayName = dayNames[slot.day] || slot.day;
-    const startTime = minutesToTime(slot.start);
-    const endTime = minutesToTime(slot.end);
-    return `${dayName} ${startTime}-${endTime}`;
+  if (section.slots.length === 0) {
+    return section.label;
+  }
+  
+  // Group slots by day
+  const dayGroups = new Map<string, { start: number; end: number }>();
+  
+  section.slots.forEach(slot => {
+    const dayOffset = slot.day === 'L' ? 0 : 
+                      slot.day === 'MA' ? 1440 :
+                      slot.day === 'MI' ? 2880 :
+                      slot.day === 'J' ? 4320 :
+                      slot.day === 'V' ? 5760 :
+                      slot.day === 'S' ? 7200 : 0;
+    
+    const startMinutes = slot.start - dayOffset;
+    const endMinutes = slot.end - dayOffset;
+    
+    if (!dayGroups.has(slot.day)) {
+      dayGroups.set(slot.day, { start: startMinutes, end: endMinutes });
+    }
+  });
+  
+  // Check if all days have the same time
+  const times = Array.from(dayGroups.values());
+  const sameTime = times.every(t => t.start === times[0].start && t.end === times[0].end);
+  
+  if (sameTime && times.length > 0) {
+    const days = Array.from(dayGroups.keys()).map(d => dayNames[d] || d).join('/');
+    const startTime = formatTime12Hour(times[0].start);
+    const endTime = formatTime12Hour(times[0].end);
+    return `${days} ${startTime} a ${endTime}`;
+  }
+  
+  // Different times for different days
+  const schedules = Array.from(dayGroups.entries()).map(([day, time]) => {
+    const dayName = dayNames[day] || day;
+    const startTime = formatTime12Hour(time.start);
+    const endTime = formatTime12Hour(time.end);
+    return `${dayName} ${startTime} a ${endTime}`;
   });
   
   return schedules.join(', ');

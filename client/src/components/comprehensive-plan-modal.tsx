@@ -12,7 +12,7 @@ import { Course } from '@/types';
 import { useCourseData } from '@/hooks/use-course-data';
 import { useStudentProgress } from '@/contexts/student-progress-context';
 import { processSectionsData, hasScheduleConflict, formatScheduleDisplay, ProcessedSection, ProcessedCourse } from '@/utils/sections-processor';
-import sectionsData from '@assets/../attached_assets/medicine-2013-sections_1759011415431.json';
+import sectionsData from '@/data/sections-merged.json';
 
 interface ComprehensivePlanModalProps {
   open: boolean;
@@ -283,12 +283,12 @@ export function ComprehensivePlanModal({ open, onClose }: ComprehensivePlanModal
                                 <SelectContent>
                                   {sections.map(section => (
                                     <SelectItem key={section.crn} value={section.crn}>
-                                      <div className="space-y-1">
-                                        <div className="font-medium">
-                                          {section.crn} - {section.room}
+                                      <div className="max-w-full">
+                                        <div className="font-medium truncate">
+                                          {section.crn} • {course.name}
                                         </div>
                                         <div className="text-xs text-muted-foreground">
-                                          {formatScheduleDisplay(section)}
+                                          {formatScheduleDisplay(section)} • {section.room}
                                         </div>
                                       </div>
                                     </SelectItem>
