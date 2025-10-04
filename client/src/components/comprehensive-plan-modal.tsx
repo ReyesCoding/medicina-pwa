@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { AlertTriangle, Check, X, Save, RotateCcw, FolderOpen } from 'lucide-react';
+import { AlertTriangle, Check, X, Save, RotateCcw, FolderOpen, ArrowLeft, Edit } from 'lucide-react';
 import { Course } from '@/types';
 import { useCourseData } from '@/hooks/use-course-data';
 import { useStudentProgress } from '@/contexts/student-progress-context';
@@ -27,6 +27,16 @@ interface SelectedSection {
 
 const processedSections = processSectionsData(sectionsData as any);
 
+// Helper function to format CRN with hyphens (e.g., MED100001 -> MED-100-001)
+const formatCRN = (crn: string): string => {
+  // Match pattern: 3 letters + 3 digits + 3 digits
+  const match = crn.match(/^([A-Z]{3})(\d{3})(\d{3})$/);
+  if (match) {
+    return `${match[1]}-${match[2]}-${match[3]}`;
+  }
+  return crn; // Return as-is if pattern doesn't match
+};
+
 export function ComprehensivePlanModal({ open, onClose }: ComprehensivePlanModalProps) {
   const { courses, getAllTerms } = useCourseData();
   const { getCourseStatus, getPassedCourses } = useStudentProgress();
@@ -34,6 +44,7 @@ export function ComprehensivePlanModal({ open, onClose }: ComprehensivePlanModal
   const [selectedSections, setSelectedSections] = useState<SelectedSection[]>([]);
   const [conflicts, setConflicts] = useState<string[]>([]);
   const [loadSavedPlan, setLoadSavedPlan] = useState(false);
+  const [viewMode, setViewMode] = useState<'plan' | 'saved'>('plan'); // New state for view mode
   const passedCourses = getPassedCourses();
 
   // Load saved plan on mount if requested
@@ -51,6 +62,13 @@ export function ComprehensivePlanModal({ open, onClose }: ComprehensivePlanModal
       setLoadSavedPlan(false);
     }
   }, [open, loadSavedPlan]);
+
+  // Reset view mode when modal closes
+  useEffect(() => {
+    if (!open) {
+      setViewMode('plan');
+    }
+  }, [open]);
 
   // Get term information
   const terms = getAllTerms();
@@ -143,12 +161,12 @@ export function ComprehensivePlanModal({ open, onClose }: ComprehensivePlanModal
 
   const handleSavePlan = () => {
     if (conflicts.length > 0) {
-      alert('No se puede guardar el plan debido a conflictos de horario. Por favor resuelve los conflictos primero.');
+      alert('⚠️ No se puede guardar el plan debido a conflictos de horario.\n\nPor favor resuelve los conflictos primero.');
       return;
     }
     
     if (totalCredits > 31) {
-      alert('No se puede guardar el plan. El límite de créditos es 31.');
+      alert('⚠️ No se puede guardar el plan.\n\nEl límite de créditos es 31.');
       return;
     }
     
@@ -161,7 +179,7 @@ export function ComprehensivePlanModal({ open, onClose }: ComprehensivePlanModal
     localStorage.setItem('savedCoursePlan', JSON.stringify(planData));
     
     console.log('Saving plan:', selectedSections);
-    alert('Plan guardado exitosamente!');
+    alert('✅ Plan guardado exitosamente!');
     onClose();
   };
 
@@ -175,7 +193,7 @@ export function ComprehensivePlanModal({ open, onClose }: ComprehensivePlanModal
       try {
         const planData = JSON.parse(savedPlan);
         setSelectedSections(planData.selectedSections || []);
-        alert('Plan cargado exitosamente!');
+        setViewMode('saved'); // Switch to saved plan view
       } catch (error) {
         console.error('Error loading saved plan:', error);
         alert('Error al cargar el plan guardado.');
@@ -185,13 +203,19 @@ export function ComprehensivePlanModal({ open, onClose }: ComprehensivePlanModal
     }
   };
 
+  const handleBackToPlan = () => {
+    setViewMode('plan');
+  };
+
   const canSave = conflicts.length === 0 && totalCredits <= 31 && selectedSections.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Mi Plan de Estudios Completo</DialogTitle>
+          <DialogTitle className="text-xl font-bold">
+            {viewMode === 'saved' ? 'Plan Guardado' : 'Mi Plan de Estudios Completo'}
+          </DialogTitle>
           <div className="flex items-center justify-between mt-4 p-4 bg-muted rounded-lg">
             <div className="flex items-center gap-6">
               <div className="text-sm">
@@ -206,32 +230,60 @@ export function ComprehensivePlanModal({ open, onClose }: ComprehensivePlanModal
               </div>
             </div>
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleLoadSavedPlan}
-              >
-                <FolderOpen className="w-4 h-4 mr-2" />
-                Ver Plan Guardado
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleClearPlan}
-                disabled={selectedSections.length === 0}
-              >
-                <RotateCcw className="w-4 h-4 mr-2" />
-                Limpiar
-              </Button>
-              <Button 
-                onClick={handleSavePlan} 
-                size="sm"
-                disabled={!canSave}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                Guardar Plan
-              </Button>
+              {viewMode === 'saved' ? (
+                <>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleBackToPlan}
+                    data-testid="button-back-to-plan"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Volver a Todas las Materias
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setViewMode('plan')}
+                    data-testid="button-edit-schedule"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Editar Horario
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleLoadSavedPlan}
+                    data-testid="button-load-saved-plan"
+                  >
+                    <FolderOpen className="w-4 h-4 mr-2" />
+                    Ver Plan Guardado
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleClearPlan}
+                    disabled={selectedSections.length === 0}
+                    data-testid="button-clear-plan"
+                  >
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    Limpiar
+                  </Button>
+                  <Button 
+                    onClick={handleSavePlan} 
+                    size="sm"
+                    disabled={!canSave}
+                    className="bg-green-600 hover:bg-green-700"
+                    data-testid="button-save-plan"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Guardar Plan
+                  </Button>
+                </>
+              )}
             </div>
           </div>
           
@@ -263,99 +315,155 @@ export function ComprehensivePlanModal({ open, onClose }: ComprehensivePlanModal
         
         <ScrollArea className="flex-1 max-h-[65vh]">
           <div className="p-6 space-y-6">
-            {coursesByTerm.map(({ term, termInfo, courses: termCourses }) => (
-              <Card key={term}>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
-                      {term}
-                    </span>
-                    <div>
-                      <div>{termInfo?.name || `Semestre ${term}`}</div>
-                      <div className="text-sm font-normal text-muted-foreground">
-                        {termInfo?.block} • {termCourses.length} materias disponibles
-                      </div>
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {termCourses.map(course => {
-                      const sections = getSectionsForCourse(course.name);
-                      const selectedSection = selectedSections.find(sel => sel.courseId === course.id);
-                      const isSelected = !!selectedSection;
-                      
-                      return (
-                        <div key={course.id} className="border rounded-lg p-4 space-y-3">
-                          <div className="space-y-2">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-medium text-sm leading-tight break-words">
-                                  {course.id} - {course.name}
-                                </h4>
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  {course.credits} créditos • HT {course.theoreticalHours} • HP {course.practicalHours}
+            {viewMode === 'saved' ? (
+              // Saved Plan View - Only show selected subjects
+              selectedSections.length > 0 ? (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">Materias y Secciones Seleccionadas</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-4">
+                      {selectedSections.map(selection => {
+                        const course = courses.find(c => c.id === selection.courseId);
+                        if (!course) return null;
+                        
+                        return (
+                          <div key={selection.courseId} className="border rounded-lg p-4 bg-muted/50" data-testid={`saved-course-${selection.courseId}`}>
+                            <div className="space-y-2">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <h4 className="font-medium text-base">
+                                    {course.id} - {course.name}
+                                  </h4>
+                                  <div className="text-sm text-muted-foreground mt-1">
+                                    {course.credits} créditos • HT {course.theoreticalHours} • HP {course.practicalHours}
+                                  </div>
+                                </div>
+                                {course.isElective && (
+                                  <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30 text-xs">
+                                    Electiva • {course.electiveType === 'general' ? 'General' : 'Profesionalizante'}
+                                  </Badge>
+                                )}
+                              </div>
+                              <Separator />
+                              <div className="bg-background rounded-md p-3">
+                                <div className="font-medium text-sm mb-1">{formatCRN(selection.sectionCrn)} • {course.name}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {formatScheduleDisplay(selection.section)} • {selection.section.room}
                                 </div>
                               </div>
-                              {isSelected && (
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  className="ml-2 h-6 w-6 p-0"
-                                  onClick={() => handleRemoveSelection(course.id)}
-                                >
-                                  <X className="w-3 h-3" />
-                                </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardContent className="p-8 text-center text-muted-foreground">
+                    No hay materias seleccionadas en el plan guardado.
+                  </CardContent>
+                </Card>
+              )
+            ) : (
+              // Full Plan View - Show all available courses
+              coursesByTerm.map(({ term, termInfo, courses: termCourses }) => (
+                <Card key={term}>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-3">
+                      <span className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
+                        {term}
+                      </span>
+                      <div>
+                        <div>{termInfo?.name || `Semestre ${term}`}</div>
+                        <div className="text-sm font-normal text-muted-foreground">
+                          {termInfo?.block} • {termCourses.length} materias disponibles
+                        </div>
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {termCourses.map(course => {
+                        const sections = getSectionsForCourse(course.name);
+                        const selectedSection = selectedSections.find(sel => sel.courseId === course.id);
+                        const isSelected = !!selectedSection;
+                        
+                        return (
+                          <div key={course.id} className="border rounded-lg p-4 space-y-3" data-testid={`course-card-${course.id}`}>
+                            <div className="space-y-2">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-medium text-sm leading-tight break-words">
+                                    {course.id} - {course.name}
+                                  </h4>
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    {course.credits} créditos • HT {course.theoreticalHours} • HP {course.practicalHours}
+                                  </div>
+                                </div>
+                                {isSelected && (
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    className="ml-2 h-6 w-6 p-0"
+                                    onClick={() => handleRemoveSelection(course.id)}
+                                    data-testid={`button-remove-${course.id}`}
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </Button>
+                                )}
+                              </div>
+                              
+                              {course.isElective && (
+                                <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30 text-xs">
+                                  Electiva • {course.electiveType === 'general' ? 'General' : 'Profesionalizante'}
+                                </Badge>
                               )}
                             </div>
                             
-                            {course.isElective && (
-                              <Badge variant="secondary" className="text-xs">
-                                Electiva • {course.electiveType === 'general' ? 'General' : 'Profesionalizante'}
-                              </Badge>
+                            {sections.length > 0 ? (
+                              <div>
+                                <label className="text-xs font-medium text-muted-foreground">
+                                  Seleccionar Sección:
+                                </label>
+                                <Select 
+                                  value={selectedSection?.sectionCrn || ""} 
+                                  onValueChange={(sectionCrn) => handleSectionSelect(course.id, sectionCrn)}
+                                >
+                                  <SelectTrigger className="mt-1 h-8 text-xs" data-testid={`select-section-${course.id}`}>
+                                    <SelectValue placeholder="Elige una sección..." />
+                                  </SelectTrigger>
+                                  <SelectContent className="max-h-[400px]">
+                                    {sections.map(section => (
+                                      <SelectItem key={section.crn} value={section.crn} data-testid={`section-option-${section.crn}`}>
+                                        <div className="max-w-full py-1">
+                                          <div className="font-medium truncate">
+                                            {formatCRN(section.crn)} • {course.name}
+                                          </div>
+                                          <div className="text-xs text-muted-foreground">
+                                            {formatScheduleDisplay(section)} • {section.room}
+                                          </div>
+                                        </div>
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            ) : (
+                              <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
+                                No hay secciones disponibles
+                              </div>
                             )}
                           </div>
-                          
-                          {sections.length > 0 ? (
-                            <div>
-                              <label className="text-xs font-medium text-muted-foreground">
-                                Seleccionar Sección:
-                              </label>
-                              <Select 
-                                value={selectedSection?.sectionCrn || ""} 
-                                onValueChange={(sectionCrn) => handleSectionSelect(course.id, sectionCrn)}
-                              >
-                                <SelectTrigger className="mt-1 h-8 text-xs">
-                                  <SelectValue placeholder="Elige una sección..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {sections.map(section => (
-                                    <SelectItem key={section.crn} value={section.crn}>
-                                      <div className="max-w-full">
-                                        <div className="font-medium truncate">
-                                          {section.crn} • {course.name}
-                                        </div>
-                                        <div className="text-xs text-muted-foreground">
-                                          {formatScheduleDisplay(section)} • {section.room}
-                                        </div>
-                                      </div>
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          ) : (
-                            <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
-                              No hay secciones disponibles
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </ScrollArea>
       </DialogContent>
