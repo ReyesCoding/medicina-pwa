@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Course, Section } from '@/types';
-import coursesData from '@/data/courses.json';
-import sectionsData from '@/data/sections.json';
 
 export function useCourseData() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -9,12 +7,22 @@ export function useCourseData() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate loading from JSON files
     const loadData = async () => {
       try {
-        // In a real app, these would be API calls
-        setCourses(coursesData as Course[]);
-        setSections(sectionsData as Section[]);
+        const [coursesRes, sectionsRes] = await Promise.all([
+          fetch('/api/courses'),
+          fetch('/api/sections')
+        ]);
+
+        if (!coursesRes.ok || !sectionsRes.ok) {
+          throw new Error('Failed to fetch data');
+        }
+
+        const coursesData = await coursesRes.json();
+        const sectionsData = await sectionsRes.json();
+
+        setCourses(coursesData);
+        setSections(sectionsData);
       } catch (error) {
         console.error('Error loading course data:', error);
       } finally {
