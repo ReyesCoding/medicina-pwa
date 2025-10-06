@@ -23,10 +23,11 @@ export function AdminPanel() {
 
     setIsSeeding(true);
     try {
-      const response = await apiRequest('/api/admin/seed-database', 'POST') as any;
+      const response = await apiRequest('POST', '/api/admin/seed-database');
+      const data = await response.json() as any;
       toast({
         title: 'Success!',
-        description: response.message,
+        description: data.message,
       });
     } catch (error) {
       toast({
