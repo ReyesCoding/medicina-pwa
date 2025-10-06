@@ -2,15 +2,43 @@ import { useState, useEffect } from 'react';
 import { Link } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings } from 'lucide-react';
+import { Settings, Database } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 export function AdminPanel() {
   const [isVisible, setIsVisible] = useState(false);
+  const [isSeeding, setIsSeeding] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     setIsVisible(urlParams.has('admin'));
   }, []);
+
+  const handleSeedDatabase = async () => {
+    if (!confirm('This will load all courses and sections from the JSON files into the database. Continue?')) {
+      return;
+    }
+
+    setIsSeeding(true);
+    try {
+      const response = await apiRequest('/api/admin/seed-database', 'POST') as any;
+      toast({
+        title: 'Success!',
+        description: response.message,
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to seed database. Check console for details.',
+        variant: 'destructive',
+      });
+      console.error('Seed error:', error);
+    } finally {
+      setIsSeeding(false);
+    }
+  };
 
   if (!isVisible) return null;
 
@@ -50,6 +78,17 @@ export function AdminPanel() {
               Manage Sections
             </Button>
           </Link>
+          <Button 
+            size="sm" 
+            variant="secondary"
+            className="w-full text-xs"
+            onClick={handleSeedDatabase}
+            disabled={isSeeding}
+            data-testid="admin-seed-btn"
+          >
+            <Database className="h-3 w-3 mr-1" />
+            {isSeeding ? 'Seeding...' : 'Seed Database'}
+          </Button>
         </div>
       </CardContent>
     </Card>

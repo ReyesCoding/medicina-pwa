@@ -2,6 +2,10 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertCourseSchema, insertSectionSchema } from "@shared/schema";
+import { db } from "./db";
+import { courses as coursesTable, sections as sectionsTable } from "@shared/schema";
+import coursesData from "../client/src/data/courses.json";
+import sectionsData from "../client/src/data/sections.json";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/courses", async (_req, res) => {
@@ -156,6 +160,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting section:", error);
       res.status(500).json({ error: "Failed to delete section" });
+    }
+  });
+
+  app.post("/api/admin/seed-database", async (_req, res) => {
+    try {
+      console.log("Starting database seed from API...");
+      let coursesInserted = 0;
+      let sectionsInserted = 0;
+
+      for (const course of coursesData) {
+        await db.insert(coursesTable).values(course).onConflictDoNothing();
+        coursesInserted++;
+      }
+
+      for (const section of sectionsData) {
+        await db.insert(sectionsTable).values(section).onConflictDoNothing();
+        sectionsInserted++;
+      }
+
+      console.log(`Database seeded: ${coursesInserted} courses, ${sectionsInserted} sections`);
+      res.json({ 
+        success: true, 
+        message: `Database seeded successfully! Inserted ${coursesInserted} courses and ${sectionsInserted} sections.`,
+        coursesInserted,
+        sectionsInserted
+      });
+    } catch (error) {
+      console.error("Error seeding database:", error);
+      res.status(500).json({ error: "Failed to seed database" });
     }
   });
 
