@@ -4,8 +4,19 @@ import { storage } from "./storage";
 import { insertCourseSchema, insertSectionSchema } from "@shared/schema";
 import { db } from "./db";
 import { courses as coursesTable, sections as sectionsTable } from "@shared/schema";
-import coursesData from "../client/src/data/courses.json";
-import sectionsData from "../client/src/data/sections.json";
+import { readFileSync } from "fs";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const coursesData = JSON.parse(
+  readFileSync(join(__dirname, "../client/src/data/courses.json"), "utf-8")
+);
+const sectionsData = JSON.parse(
+  readFileSync(join(__dirname, "../client/src/data/sections.json"), "utf-8")
+);
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/courses", async (_req, res) => {
