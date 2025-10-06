@@ -409,12 +409,12 @@ export function AdminCourses() {
               <TableBody>
                 {courses.map((course) => (
                   <TableRow key={course.id} data-testid={`row-course-${course.id}`}>
-                    <TableCell className="font-mono" data-testid={`text-course-id-${course.id}`}>{course.id}</TableCell>
-                    <TableCell data-testid={`text-course-name-${course.id}`}>{course.name}</TableCell>
-                    <TableCell data-testid={`text-course-credits-${course.id}`}>{course.credits}</TableCell>
-                    <TableCell data-testid={`text-course-term-${course.id}`}>{course.term}</TableCell>
-                    <TableCell data-testid={`text-course-block-${course.id}`}>{course.block}</TableCell>
-                    <TableCell data-testid={`text-course-elective-${course.id}`}>
+                    <TableCell className="font-mono text-gray-900 dark:text-gray-100" data-testid={`text-course-id-${course.id}`}>{course.id}</TableCell>
+                    <TableCell className="text-gray-900 dark:text-gray-100" data-testid={`text-course-name-${course.id}`}>{course.name}</TableCell>
+                    <TableCell className="text-gray-900 dark:text-gray-100" data-testid={`text-course-credits-${course.id}`}>{course.credits}</TableCell>
+                    <TableCell className="text-gray-900 dark:text-gray-100" data-testid={`text-course-term-${course.id}`}>{course.term}</TableCell>
+                    <TableCell className="text-gray-900 dark:text-gray-100" data-testid={`text-course-block-${course.id}`}>{course.block}</TableCell>
+                    <TableCell className="text-gray-900 dark:text-gray-100" data-testid={`text-course-elective-${course.id}`}>
                       {course.isElective ? "Yes" : "No"}
                     </TableCell>
                     <TableCell className="text-right">

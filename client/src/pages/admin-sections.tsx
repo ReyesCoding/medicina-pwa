@@ -381,22 +381,22 @@ export function AdminSections() {
               <TableBody>
                 {sections.map((section) => (
                   <TableRow key={section.id} data-testid={`row-section-${section.id}`}>
-                    <TableCell data-testid={`text-course-${section.id}`}>
+                    <TableCell className="text-gray-900 dark:text-gray-100" data-testid={`text-course-${section.id}`}>
                       {getCourseNameById(section.courseId)}
                     </TableCell>
-                    <TableCell data-testid={`text-section-number-${section.id}`}>
+                    <TableCell className="text-gray-900 dark:text-gray-100" data-testid={`text-section-number-${section.id}`}>
                       {section.sectionNumber}
                     </TableCell>
-                    <TableCell data-testid={`text-crn-${section.id}`}>
+                    <TableCell className="text-gray-900 dark:text-gray-100" data-testid={`text-crn-${section.id}`}>
                       {section.crn}
                     </TableCell>
-                    <TableCell data-testid={`text-instructor-${section.id}`}>
+                    <TableCell className="text-gray-900 dark:text-gray-100" data-testid={`text-instructor-${section.id}`}>
                       {section.instructor}
                     </TableCell>
-                    <TableCell data-testid={`text-room-${section.id}`}>
+                    <TableCell className="text-gray-900 dark:text-gray-100" data-testid={`text-room-${section.id}`}>
                       {section.room}
                     </TableCell>
-                    <TableCell data-testid={`text-capacity-${section.id}`}>
+                    <TableCell className="text-gray-900 dark:text-gray-100" data-testid={`text-capacity-${section.id}`}>
                       {section.currentEnrollment}/{section.maxCapacity}
                     </TableCell>
                     <TableCell className="text-right">
