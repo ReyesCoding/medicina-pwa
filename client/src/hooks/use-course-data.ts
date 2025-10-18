@@ -10,8 +10,8 @@ export function useCourseData() {
     const loadData = async () => {
       try {
         const [coursesRes, sectionsRes] = await Promise.all([
-          fetch('/api/courses'),
-          fetch('/api/sections')
+          fetch(`${import.meta.env.BASE_URL}data/courses.json`),
+          fetch(`${import.meta.env.BASE_URL}data/sections.json`)
         ]);
 
         if (!coursesRes.ok || !sectionsRes.ok) {

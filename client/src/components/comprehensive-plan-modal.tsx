@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle,DialogDescription  } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +12,6 @@ import { Course } from '@/types';
 import { useCourseData } from '@/hooks/use-course-data';
 import { useStudentProgress } from '@/contexts/student-progress-context';
 import { processSectionsData, hasScheduleConflict, formatScheduleDisplay, ProcessedSection, ProcessedCourse } from '@/utils/sections-processor';
-import sectionsData from '@/data/sections-merged.json';
 
 interface ComprehensivePlanModalProps {
   open: boolean;
@@ -24,8 +23,6 @@ interface SelectedSection {
   sectionCrn: string;
   section: ProcessedSection;
 }
-
-const processedSections = processSectionsData(sectionsData as any);
 
 // Helper function to format CRN with hyphens (e.g., MED100001 -> MED-100-001)
 const formatCRN = (crn: string): string => {
@@ -46,6 +43,30 @@ export function ComprehensivePlanModal({ open, onClose }: ComprehensivePlanModal
   const [loadSavedPlan, setLoadSavedPlan] = useState(false);
   const [viewMode, setViewMode] = useState<'plan' | 'saved'>('plan'); // New state for view mode
   const passedCourses = getPassedCourses();
+
+  const [sections, setSections] = useState<any[] | null>(null);
+
+useEffect(() => {
+  let cancelled = false;
+
+  (async () => {
+    try {
+      const res = await fetch(`${import.meta.env.BASE_URL}data/sections.json`);
+      const json = await res.json();
+      if (!cancelled) setSections(json);
+    } catch (err) {
+      console.error('Error cargando sections.json', err);
+      if (!cancelled) setSections([]);
+    }
+  })();
+
+  return () => { cancelled = true; };
+}, []);
+
+const processedSections = useMemo(
+  () => (sections ? processSectionsData(sections as any) : null),
+  [sections]
+);
 
   // Load saved plan on mount if requested
   useEffect(() => {
@@ -101,11 +122,16 @@ export function ComprehensivePlanModal({ open, onClose }: ComprehensivePlanModal
 
   // Get sections for a course by matching course name
   const getSectionsForCourse = (courseName: string): ProcessedSection[] => {
-    const courseData = processedSections.courses.find(c => 
-      c.name === courseName || c.name.toLowerCase() === courseName.toLowerCase()
-    );
-    return courseData?.sections.filter(section => !section.closed) || [];
-  };
+  if (!processedSections || !processedSections.courses) return [];
+
+  const courseData = processedSections.courses.find(
+    (c) =>
+      c.name === courseName ||
+      c.name.toLowerCase() === courseName.toLowerCase()
+  );
+
+  return courseData?.sections.filter((section) => !section.closed) || [];
+};
 
   // Calculate total credits
   const totalCredits = selectedSections.reduce((sum, selection) => {
@@ -215,7 +241,10 @@ export function ComprehensivePlanModal({ open, onClose }: ComprehensivePlanModal
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
             {viewMode === 'saved' ? 'Plan Guardado' : 'Mi Plan de Estudios Completo'}
-          </DialogTitle>
+          </DialogTitle> 
+            <DialogDescription className="sr-only">
+              Planificador de materias y secciones para generar tu horario sin conflictos.
+             </DialogDescription>
           <div className="flex items-center justify-between mt-4 p-4 bg-muted rounded-lg">
             <div className="flex items-center gap-6">
               <div className="text-sm">
