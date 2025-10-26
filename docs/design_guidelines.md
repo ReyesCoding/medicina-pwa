@@ -182,7 +182,7 @@
 **No Hero Image Required** - This is a utility application, not a marketing page. Focus on data visualization and functional UI.
 
 **Icon Usage:**
-- Use Heroicons throughout for consistency
+- Use lucide-react throughout for consistency
 - Course categories: Custom medical-themed icons (Stethoscope, Book, Flask, Brain, etc.)
 - Navigation: Standard icons (Dashboard, Calendar, BarChart, Settings)
 - Actions: Plus, Trash, Edit, Download icons

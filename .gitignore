@@ -1,8 +1,42 @@
-node_modules
-dist
+# Node dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# OS / IDE files
 .DS_Store
-server/public
-vite.config.ts.*
-*.tar.gz
+Thumbs.db
+.vscode/
+.idea/
+
+# Environment & local configs
+.env
+.env.*
+*.local
+
 # Replit / local agent folders
 .local/
+.replit/
+replit.nix
+
+# Server (legacy, excluded from static build)
+server/
+backup/server/
+
+# Temporary archives
+*.tar.gz
+*.zip
+
+# TypeScript temporary build files
+vite.config.ts.*
+tsconfig.tsbuildinfo
+
+# Misc
+*.log

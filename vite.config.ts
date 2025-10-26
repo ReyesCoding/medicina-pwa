@@ -15,22 +15,27 @@ export default defineConfig(({ mode }) => {
 
     plugins: [
       react(),
-      // 🚫 Sin plugins de Replit para mantener el build limpio y portable
     ],
 
     resolve: {
       alias: {
         "@": path.resolve(import.meta.dirname, "client", "src"),
-        "@shared": path.resolve(import.meta.dirname, "shared"),
         // 🚫 Se elimina "@assets" porque attached_assets/ ya no existe
       },
     },
 
-    build: {
-      outDir: path.resolve(import.meta.dirname, "dist/public"),
-      emptyOutDir: true,
-      sourcemap: !isProd,
-    },
+   build: {
+  outDir: path.resolve(import.meta.dirname, "dist/public"),
+  emptyOutDir: true,
+  rollupOptions: {
+    output: {
+      manualChunks: {
+        react: ['react', 'react-dom'],
+        ui: ['@radix-ui/react-dialog', '@radix-ui/react-tabs'],
+      }
+    }
+  }
+},
 
     server: {
       fs: {

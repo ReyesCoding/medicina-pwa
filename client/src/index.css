@@ -3,6 +3,8 @@
 @tailwind components;
 @tailwind utilities;
 
+
+
 :root {
   --radius: 12px;
   --background: hsl(221, 39%, 11%);
@@ -178,11 +180,15 @@
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
+  /* Ejemplos comunes */
+  html, body, #root { height: 100%; }
+  body { @apply bg-background text-foreground; }
+}
 
-  body {
-    @apply font-sans antialiased bg-background text-foreground;
+@layer components {
+  /* Si defines clases personalizadas con @apply, ponlas aquí */
+  .card {
+    @apply border border-border bg-card text-card-foreground rounded-lg;
   }
 }
+
