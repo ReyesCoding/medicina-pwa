@@ -10,7 +10,7 @@ import AdminPage from '@/admin/AdminPage';
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     // ⚡️ versión sincronizada con CACHE_VERSION en sw.js
-    const ver = 'v2025-10-26-1';
+    const ver = 'v2025-10-26-2';
     navigator.serviceWorker
       .register(`${import.meta.env.BASE_URL}sw.js?v=${ver}`)
       .then((registration) => {
