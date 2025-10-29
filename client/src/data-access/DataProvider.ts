@@ -1,6 +1,7 @@
+// client/src/data-access/DataProvider.ts
 export interface DataProvider {
   getCourses(): Promise<any[]>;
-  getSections(): Promise<any>; // según tu JSON (array u objeto), usamos any aquí
-  saveCourses(courses: any[]): Promise<void>;
-  saveSections(sections: any): Promise<void>;
+  getSections(): Promise<any[]>;
+  saveCourses(next: any[]): Promise<void> | void;
+  saveSections(next: any[]): Promise<void> | void;
 }
