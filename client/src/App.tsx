@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Router as WouterRouter, Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -9,7 +9,7 @@ import { AdminCourses } from "@/pages/admin-courses";
 import { AdminSections } from "@/pages/admin-sections";
 import NotFound from "@/pages/not-found";
 
-function Router() {
+function AppRoutes() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
@@ -21,12 +21,17 @@ function Router() {
 }
 
 function App() {
+  // Quita la barra final para wouter: "/medicina-pwa" en vez de "/medicina-pwa/"
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
   return (
     <QueryClientProvider client={queryClient}>
       <StudentProgressProvider>
         <TooltipProvider>
-          <Toaster />
-          <Router />
+          <WouterRouter base={base}>
+            <Toaster />
+            <AppRoutes />
+          </WouterRouter>
         </TooltipProvider>
       </StudentProgressProvider>
     </QueryClientProvider>
