@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Kill SW</title></head>
+  <body>
+    <script>
+      (async () => {
+        if ('serviceWorker' in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          for (const r of regs) { try { await r.unregister(); } catch {} }
+          if (window.caches && caches.keys) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(k => caches.delete(k)));
+          }
+        }
+        // Limpia storage por si acaso
+        try { localStorage.clear(); sessionStorage.clear(); } catch {}
+        document.body.innerHTML = '<h1>OK: SW y caches eliminados.</h1><p>Ahora refresca la app.</p>';
+      })();
+    </script>
+  </body>
+</html>
