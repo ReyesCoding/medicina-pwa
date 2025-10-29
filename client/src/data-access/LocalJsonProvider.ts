@@ -6,8 +6,8 @@ const LS_SECTIONS_KEY = 'admin:sections';
 
 class LocalJsonProvider implements DataProvider {
   private base = import.meta.env.BASE_URL; // p.ej. "/medicina-pwa/"
-  private courses: any[] = [];        // <-- siempre array
-  private sections: any = null;       // puede ser array o { courses: [...] }
+  private courses: any[] = [];   // siempre array
+  private sections: any = null;  // puede ser array o { courses: [...] }
 
   private readLocal<T = unknown>(key: string): T | null {
     try {
@@ -19,20 +19,12 @@ class LocalJsonProvider implements DataProvider {
     }
   }
 
+  // --- NETWORK-FIRST para evitar quedar pegados a LS vacío ---
   async getCourses(): Promise<any[]> {
-    // 1) Si ya tenemos cache, retornamos
+    // 1) Si ya hay cache en memoria
     if (this.courses.length > 0) return this.courses;
 
-    // 2) Intentar localStorage (Admin)
-    const local = this.readLocal<any>(LS_COURSES_KEY);
-    if (local) {
-      this.courses = Array.isArray(local)
-        ? local
-        : (Array.isArray(local?.courses) ? local.courses : []);
-      if (this.courses.length > 0) return this.courses;
-    }
-
-    // 3) Fetch desde /public/data
+    // 2) Intentar red primero
     try {
       const res = await fetch(`${this.base}data/courses.json`, { cache: 'no-cache' });
       if (!res.ok) throw new Error(`courses ${res.status}`);
@@ -40,36 +32,40 @@ class LocalJsonProvider implements DataProvider {
       this.courses = Array.isArray(json)
         ? json
         : (Array.isArray(json?.courses) ? json.courses : []);
+      // refresca LS con lo bueno de la red
+      localStorage.setItem(LS_COURSES_KEY, JSON.stringify(this.courses));
+      return this.courses;
     } catch (err) {
-      console.error('[LocalJsonProvider] getCourses error:', err);
-      this.courses = [];
+      console.warn('[LocalJsonProvider] network courses failed, falling back to LS:', err);
     }
 
-    return this.courses; // <-- ahora siempre es array
+    // 3) Fallback a LS (ignorar listas vacías)
+    const local = this.readLocal<any>(LS_COURSES_KEY);
+    const fromLS = Array.isArray(local)
+      ? local
+      : (Array.isArray(local?.courses) ? local.courses : []);
+    this.courses = Array.isArray(fromLS) && fromLS.length > 0 ? fromLS : [];
+    return this.courses;
   }
 
   async getSections(): Promise<any> {
-    // Mantiene shape original (array o {courses:[...]})
     if (this.sections) return this.sections;
 
-    // 1) LocalStorage (Admin)
-    const local = this.readLocal<any>(LS_SECTIONS_KEY);
-    if (local) {
-      this.sections = local;
-      return this.sections;
-    }
-
-    // 2) Fetch desde /public/data
+    // 1) Red primero
     try {
       const res = await fetch(`${this.base}data/sections.json`, { cache: 'no-cache' });
       if (!res.ok) throw new Error(`sections ${res.status}`);
       const json = await res.json();
-      this.sections = json ?? []; // fallback seguro
+      this.sections = json ?? [];
+      localStorage.setItem(LS_SECTIONS_KEY, JSON.stringify(this.sections));
+      return this.sections;
     } catch (err) {
-      console.error('[LocalJsonProvider] getSections error:', err);
-      this.sections = [];
+      console.warn('[LocalJsonProvider] network sections failed, falling back to LS:', err);
     }
 
+    // 2) Fallback a LS (si es vacío, quedará [])
+    const local = this.readLocal<any>(LS_SECTIONS_KEY);
+    this.sections = local ?? [];
     return this.sections;
   }
 
